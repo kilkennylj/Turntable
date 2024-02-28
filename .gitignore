@@ -1,3 +1,6 @@
 .DS_Store
 .drawio
 README.md
+node_modules
+.env
+
