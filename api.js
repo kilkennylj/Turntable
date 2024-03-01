@@ -14,7 +14,7 @@ exports.setApp = function (app, client)
 		const { login, password } = req.body;
 		
 		const db = client.db('Turntable');
-		const results = await
+		const results = await 
 			db.collection('Users').find({Login:login,Password:password}).toArray();
 		
 		var id = -1;
@@ -25,10 +25,11 @@ exports.setApp = function (app, client)
 		if( results.length > 0 )
 		{
 			id = results[0].UserID;
-			fn = results[0].FirstName;
-			ln = results[0].LastName;
-		
-			try
+			firstName = results[0].FirstName;
+			lastName = results[0].LastName;
+			
+			// Page 10 of MERN C seems to be missing somethign for JWT's in Login.js
+			/*try
 			{
 				const token = require("./createJWT.js");
 				ret = token.createToken(firstName, lastName, id);
@@ -36,16 +37,16 @@ exports.setApp = function (app, client)
 			
 			catch(e)
 			{
-				ret = {error:e.message};
-			}
+				ret = {id, firstName, lastName, error:e.message};
+			}*/
 		}
 		
 		else
 		{
-			error = "Login/Password incorrect";
+			error = "Login or Password is incorrect";
 		}
 		
-		var ret = { id:id, firstName:firstName, lastName:lastName, error:''};
+		var ret = { id:id, firstName:firstName, lastName:lastName, error:error};
 		res.status(200).json(ret);
 	});
 	
