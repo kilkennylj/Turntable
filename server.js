@@ -15,8 +15,8 @@ const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient(url);
 client.connect();
 
-// API TEAM. The login/register endpoints are done in MERN A, and edited in MERN B
-// Please make sure you do the MERN B edits so it works properly
+var api = require('./api.js');
+api.setApp(app, client);
 
 // I think this goes here
 if (process.env.NODE_ENV === 'production')
