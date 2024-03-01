@@ -7,7 +7,7 @@ exports.setApp = function (app, client)
 	// even though it logs in, it cant find first, last or error.
 	// please ping me the second you struggle understanding/doing here.
 	// i will try to catch you up to whats happening
-	app.post('/api/login', async (req, res, next) =>
+	/*app.post('/api/login', async (req, res, next) =>
 	{
 		// incoming: login, password
 		// outgoing: id, firstName, lastName, error
@@ -38,7 +38,7 @@ exports.setApp = function (app, client)
 			catch(e)
 			{
 				ret = {id, firstName, lastName, error:e.message};
-			}*/
+			}
 		}
 		
 		else
@@ -48,13 +48,13 @@ exports.setApp = function (app, client)
 		
 		var ret = { id:id, firstName:firstName, lastName:lastName, error:error};
 		res.status(200).json(ret);
-	});
+	});*/
 	
 	// This is the code from MERN C. It is completely incorrect
 	// I have no idea why he asks us to add it here. It is wrong.
 	// I'm keeping in here just in case.
 	// Above will have the JWT stuff that this function fails to implement correctly.
-	/*app.post('/api/login', async (req, res, next) =>
+	app.post('/api/login', async (req, res, next) =>
 	{
 		// incoming: login, password
 		// outgoing: id, firstName, lastName, error
@@ -98,11 +98,11 @@ exports.setApp = function (app, client)
 		// if invalid
 		else
 		{
-			ret = {error:"Login/Password incorrect"};
+			ret = {error:"Login or Password is incorrect"};
 		}
 		
 		res.status(200).json(ret);
-	});*/
+	});
 	
 	// MERN C at 17:20 or page 5-9 have required JWT integration code to confirm that 
 	// someone is logged in. code that as part of every endpoint
