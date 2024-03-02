@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJwt } from "react-jwt";
+//import { useJwt } from "react-jwt"; // is said to be required but isn't??
 import { jwtDecode } from "jwt-decode";
 
 function Login()
@@ -26,12 +26,13 @@ function Login()
 			var res = JSON.parse(await response.text());
 			
 			const { accessToken } = res;
-			const decoded = jwtDecode(accessToken,{complete:true});
 			
+			const decoded = jwtDecode(accessToken,{complete:true});
+
 			try
 			{
 				var ud = decoded;
-				var userId = ud.userId; // might be wrong case
+				var userId = ud.userId;
 				var firstName = ud.firstName;
 				var lastName = ud.lastName;
 				
@@ -50,16 +51,18 @@ function Login()
 				}
 			}
 			
+			// setMessage was added in, not in MERN C but its required
 			catch(e)
 			{
-				console.log(e.toString());
+				setMessage("User/Password combination incorrect");
 				return("");
 			}
 		}
 		
+		// setMessage was added in, not in MERN C but its required
 		catch(e)
 		{
-			console.log(e.toString());
+			setMessage("User/Password combination incorrect");
 			return("");
 		}
 	};
