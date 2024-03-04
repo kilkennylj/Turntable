@@ -56,4 +56,23 @@ exports.setApp = function (app, client)
 		
 		res.status(200).json(ret);
 	});
+
+	app.post('/api/register', async (req, res, next) => 
+    	{
+        	// incoming : firstName, lastName, login, password, email, albums(empty)
+        	// outgoing : error
+        	var error = '';
+
+        	const { firstName, lastName, email, login, password} = req.body;
+
+        	const db = client.db("Turntable");
+		
+			var albums = new Array();
+		
+        	var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
+
+       	    const results = await db.collection('Users').insertOne(newUser);
+
+        	res.status(200).json(results);
+    	});
 }
