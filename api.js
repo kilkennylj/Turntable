@@ -59,7 +59,7 @@ exports.setApp = function (app, client)
 
 	app.post('/api/register', async (req, res, next) => 
     	{
-        	// incoming : id, firstName, lastName, login, password, email, albums(empty)
+        	// incoming : firstName, lastName, login, password, email, albums(empty)
         	// outgoing : error
         	var error = '';
 
@@ -67,17 +67,12 @@ exports.setApp = function (app, client)
 
         	const db = client.db("Turntable");
 		
-		var albums = new Array();
+			var albums = new Array();
 		
         	var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
 
-        	try{
-        	    const results = await db.collection('Users').insertOne(newUser);
-        	}
-        	catch (e){
-        	    error = e.toString();
-        	}
+       	    const results = await db.collection('Users').insertOne(newUser);
 
-        	res.status(200).json(ret);
+        	res.status(200).json(results);
     	});
 }
