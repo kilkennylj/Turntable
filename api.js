@@ -59,27 +59,23 @@ exports.setApp = function (app, client)
 
 	app.post('/api/register', async (req, res, next) => 
     	{
-        	// incoming : id, firstName, lastName, email, login, password
+        	// incoming : id, firstName, lastName, login, password, email, albums(empty)
         	// outgoing : error
         	var error = '';
 
         	const { firstName, lastName, email, login, password} = req.body;
 
         	const db = client.db("Turntable");
-
-        	var newUser = { FirstName: firstName, LastName: lastName, Email: email, Login: login, Password: password };
+		
+		var albums = new Array();
+		
+        	var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
 
         	try{
         	    const results = await db.collection('Users').insertOne(newUser);
         	}
         	catch (e){
         	    error = e.toString();
-        	}
-
-        	if( results.length > 0){
-			id = results[0].UserID;
-        	}else{
-        	    ret = {error: "Could not Register User"}
         	}
 
         	res.status(200).json(ret);
