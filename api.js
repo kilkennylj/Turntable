@@ -54,6 +54,8 @@ exports.setApp = function (app, client)
 			ret = {error:"Login or Password is incorrect"};
 		}
 
+		console.log(ret);
+
 		// note that this returns a JWT
 		res.status(200).json(ret);
 	});
@@ -66,34 +68,53 @@ exports.setApp = function (app, client)
 
     	const { firstName, lastName, email, login, password} = req.body;
 
+		var _ret = [];
+
 		try
 		{
 			const db = client.db("Turntable");
-			var albums = new Array();
+			var albums = [];
 		
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
 			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
-			const results = await db.collection('Users').insertOne(newUser);
+			_ret = await db.collection('Users').insertOne(newUser);
 		}
 		catch(e)
 		{
-			error = to.string(e);
+			error = e.toString();
 		}
 
 		// I believe it should be like this, like the other endpoints
-		var ret = {error: error};
+		var ret = {results: _ret, error: error};
     	res.status(200).json(ret);
     });
 
     app.post('/api/addalbum', async (req, res, next) =>
     {
-		// incoming : name, year, genres(array), rating, tracks(array), length(array)
+		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover
 		// outgoing : error
 		var error = '';
 
-		const { name, year, genres, rating, tracks, length, cover } = req.body;
+		const { name, year, genres, rating, tracks, length, cover, jwtToken } = req.body;
+
+		var token = require('./createJWT.js');
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = {error:'The JWT is no longer valid', jwtToken: ''};
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e.message);
+		}
 
 		const newAlbum = {Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover};
 
@@ -104,10 +125,22 @@ exports.setApp = function (app, client)
 		}
 		catch(e)
 		{
-			error = to.string(e);
+			error = e.toString();
 		}
 
-		var ret = {error: error};
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+		
+		catch(e)
+		{
+			console.log(e.message);
+		}
+
+		var ret = {error: error, jwtToken: refreshedToken};
 		res.status(200).json(ret);
     });
 
