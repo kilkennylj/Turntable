@@ -1,14 +1,19 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from './pages/LoginPage';
+import AlbumPage from './pages/AlbumPage';
 
-function App() {
+function App() 
+{
   return (
-    <LoginPage />
+    <BrowserRouter>
+    <Routes>
+    <Route path="/" index element={<LoginPage />} />
+    <Route path="/albums" index element={<AlbumPage />} />
+    </Routes>
+    </BrowserRouter>
   );
 }
 
 export default App;
-

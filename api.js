@@ -2,7 +2,7 @@ require('express');
 require('mongodb');
 
 exports.setApp = function (app, client)
-{	
+{
 	// This is the code from MERN C. It is completely incorrect
 	// I have no idea why he asks us to add it here. It is wrong.
 	// I'm keeping in here just in case.
@@ -12,21 +12,21 @@ exports.setApp = function (app, client)
 		// incoming: login, password
 		// outgoing: id, firstName, lastName, error
 		var error = '';
-		
+
 		// we have to use different cases than database so we don't overwrite
 		// Login is in the database. same for others and UserID
 		// login is on the api (in this file). same for others with id (as UserID)
 		const { login, password } = req.body;
-		
+
 		const db = client.db("Turntable");
 		const results = await db.collection('Users').find({Login:login,Password:password}).toArray();
-		
+
 		var id = -1;
 		var firstName = '';
 		var lastName = '';
-		
+
 		var ret;
-		
+
 		// if valid
 		if ( results.length > 0 )
 		{
@@ -34,45 +34,81 @@ exports.setApp = function (app, client)
 			id = results[0].UserID;
 			firstName = results[0].FirstName;
 			lastName = results[0].LastName;
-			
+
 			// required JWT
 			try
 			{
 				const token = require("./createJWT.js");
 				ret = token.createToken(firstName, lastName, id);
 			}
-			
+
 			catch(e)
 			{
 				ret = {error:e.message};
 			}
 		}
-		
+
 		// if invalid
 		else
 		{
 			ret = {error:"Login or Password is incorrect"};
 		}
-		
+
+		// note that this returns a JWT
 		res.status(200).json(ret);
 	});
 
-	app.post('/api/register', async (req, res, next) => 
-    	{
-        	// incoming : firstName, lastName, login, password, email, albums(empty)
-        	// outgoing : error
-        	var error = '';
+	app.post('/api/register', async (req, res, next) =>
+    {
+    	// incoming : firstName, lastName, login, password, email, albums(empty)
+    	// outgoing : error
+    	var error = '';
 
-        	const { firstName, lastName, email, login, password} = req.body;
+    	const { firstName, lastName, email, login, password} = req.body;
 
-        	const db = client.db("Turntable");
-		
+		try
+		{
+			const db = client.db("Turntable");
 			var albums = new Array();
 		
-        	var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
+			// somehow get the largest UserID in the database, add one, put it in the newUser
+			// also check for error here, just realized this function doesn't do that
 
-       	    const results = await db.collection('Users').insertOne(newUser);
+			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
+			const results = await db.collection('Users').insertOne(newUser);
+		}
+		catch(e)
+		{
+			error = to.string(e);
+		}
 
-        	res.status(200).json(results);
-    	});
+		// I believe it should be like this, like the other endpoints
+		var ret = {error: error};
+    	res.status(200).json(ret);
+    });
+
+    app.post('/api/addalbum', async (req, res, next) =>
+    {
+		// incoming : name, year, genres(array), rating, tracks(array), length(array)
+		// outgoing : error
+		var error = '';
+
+		const { name, year, genres, rating, tracks, length, cover } = req.body;
+
+		const newAlbum = {Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover};
+
+		try
+		{
+			const db = client.db("Turntable");
+			const result = db.collection("Albums").insertOne(newAlbum);
+		}
+		catch(e)
+		{
+			error = to.string(e);
+		}
+
+		var ret = {error: error};
+		res.status(200).json(ret);
+    });
+
 }
