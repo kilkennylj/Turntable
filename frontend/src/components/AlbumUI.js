@@ -7,10 +7,10 @@ import React, { useState } from 'react';
 function AlbumUI() {
     var name = '';
     var year;
-    var genres = new Array();
+    var genres = [];
     var rating;
-    var tracks = new Array();
-    var length = new Array();
+    var tracks = [];
+    var length = [];
     var cover = '';
 
     var album = { name, year, genres, rating, tracks, length, cover };
