@@ -5,9 +5,9 @@ const AlbumPage = () =>
 {
     return(
         <div>
-        <PageTitle />
-        <LoggedInName />
-        <AlbumUI />
+            <PageTitle />
+            <LoggedInName />
+            <AlbumUI />
         </div>
     );
 }
