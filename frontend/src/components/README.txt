@@ -14,3 +14,5 @@ Delete this file when done doing these things:
 -what he said ^
 
 -DO NOT FORGET TO REMOVE AND REPLACE REDIRECTS WITH THE <LINK> ELEMENT FROM REACT ROUTER AFTER DEMO
+
+-Now using TailwindCSS :3 (don't forget the postcss autoprefixer)
