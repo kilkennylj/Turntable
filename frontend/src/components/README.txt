@@ -10,3 +10,7 @@ Delete this file when done doing these things:
 	
 -also the intro to deathconsciousness is so depressing. 
  id be depressed too if i was born in connecticut, just a worse rhode island
+
+-what he said ^
+
+-DO NOT FORGET TO REMOVE AND REPLACE REDIRECTS WITH THE <LINK> ELEMENT FROM REACT ROUTER AFTER DEMO
