@@ -93,7 +93,7 @@ exports.setApp = function (app, client)
 
     app.post('/api/addalbum', async (req, res, next) =>
     {
-		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover
+		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover, jwtToken
 		// outgoing : error
 		var error = '';
 
@@ -146,11 +146,11 @@ exports.setApp = function (app, client)
 
     app.post('/api/addartist', async (req, res, next) =>
     {
-		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover
+		// incoming : name, year, genres(array), rating, albums(array), jwtToken
 		// outgoing : error
 		var error = '';
 
-		const { name, debut, genres, rating, albums, jwtToken } = req.body;
+		const { name, year, genres, rating, albums, jwtToken } = req.body;
 
 		var token = require('./createJWT.js');
 
@@ -169,12 +169,12 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		const newArtist = {Name: name, Debut: debut, Genres: genres, Rating: rating, Albums: albums};
+		const newArtist = {Name: name, Year: year, Genres: genres, Rating: rating, Albums: albums};
 
 		try
 		{
 			const db = client.db("Turntable");
-			const result = db.collection("Albums").insertOne(newAlbum);
+			const result = db.collection("Artists").insertOne(newArtist);
 		}
 		catch(e)
 		{
