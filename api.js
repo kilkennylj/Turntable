@@ -74,7 +74,7 @@ exports.setApp = function (app, client)
 		{
 			const db = client.db("Turntable");
 			var albums = [];
-		
+
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
@@ -93,7 +93,7 @@ exports.setApp = function (app, client)
 
     app.post('/api/addalbum', async (req, res, next) =>
     {
-		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover
+		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover, jwtToken
 		// outgoing : error
 		var error = '';
 
@@ -134,7 +134,60 @@ exports.setApp = function (app, client)
 		{
 			refreshedToken = token.refresh(jwtToken);
 		}
-		
+
+		catch(e)
+		{
+			console.log(e.message);
+		}
+
+		var ret = {error: error, jwtToken: refreshedToken};
+		res.status(200).json(ret);
+    });
+
+    app.post('/api/addartist', async (req, res, next) =>
+    {
+		// incoming : name, year, genres(array), rating, albums(array), jwtToken
+		// outgoing : error
+		var error = '';
+
+		const { name, year, genres, rating, albums, jwtToken } = req.body;
+
+		var token = require('./createJWT.js');
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = {error:'The JWT is no longer valid', jwtToken: ''};
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e.message);
+		}
+
+		const newArtist = {Name: name, Year: year, Genres: genres, Rating: rating, Albums: albums};
+
+		try
+		{
+			const db = client.db("Turntable");
+			const result = db.collection("Artists").insertOne(newArtist);
+		}
+		catch(e)
+		{
+			error = e.toString();
+		}
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
 		catch(e)
 		{
 			console.log(e.message);
