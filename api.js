@@ -54,8 +54,6 @@ exports.setApp = function (app, client)
 			ret = {error:"Login or Password is incorrect"};
 		}
 
-		console.log(ret);
-
 		// note that this returns a JWT
 		res.status(200).json(ret);
 	});
