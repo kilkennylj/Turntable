@@ -1,8 +1,9 @@
 require('express');
 require('mongodb');
 
-exports.setApp = function (app, client)
-{
+const axios = require('axios')
+
+exports.setApp = function (app, client) {
 	// This is the code from MERN C. It is completely incorrect
 	// I have no idea why he asks us to add it here. It is wrong.
 	// I'm keeping in here just in case.
@@ -19,7 +20,7 @@ exports.setApp = function (app, client)
 		const { login, password } = req.body;
 
 		const db = client.db("Turntable");
-		const results = await db.collection('Users').find({Login:login,Password:password}).toArray();
+		const results = await db.collection('Users').find({ Login: login, Password: password }).toArray();
 
 		var id = -1;
 		var firstName = '';
@@ -28,7 +29,7 @@ exports.setApp = function (app, client)
 		var ret;
 
 		// if valid
-		if ( results.length > 0 )
+		if (results.length > 0)
 		{
 			// as discussed above, the left should have one case type, the right has another
 			id = results[0].UserID;
@@ -42,16 +43,16 @@ exports.setApp = function (app, client)
 				ret = token.createToken(firstName, lastName, id);
 			}
 
-			catch(e)
+			catch (e)
 			{
-				ret = {error:e.message};
+				ret = { error: e.message };
 			}
 		}
 
 		// if invalid
 		else
 		{
-			ret = {error:"Login or Password is incorrect"};
+			ret = { error: "Login or Password is incorrect" };
 		}
 
 		// note that this returns a JWT
@@ -59,12 +60,12 @@ exports.setApp = function (app, client)
 	});
 
 	app.post('/api/register', async (req, res, next) =>
-    {
-    	// incoming : firstName, lastName, login, password, email, albums(empty)
-    	// outgoing : error
-    	var error = '';
+	{
+		// incoming : firstName, lastName, login, password, email, albums(empty)
+		// outgoing : error
+		var error = '';
 
-    	const { firstName, lastName, email, login, password} = req.body;
+		const { firstName, lastName, email, login, password } = req.body;
 
 		var _ret = [];
 
@@ -79,18 +80,18 @@ exports.setApp = function (app, client)
 			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
 			_ret = await db.collection('Users').insertOne(newUser);
 		}
-		catch(e)
+		catch (e)
 		{
 			error = e.toString();
 		}
 
 		// I believe it should be like this, like the other endpoints
-		var ret = {results: _ret, error: error};
-    	res.status(200).json(ret);
-    });
+		var ret = { results: _ret, error: error };
+		res.status(200).json(ret);
+	});
 
-    app.post('/api/addalbum', async (req, res, next) =>
-    {
+	app.post('/api/addalbum', async (req, res, next) =>
+	{
 		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover, jwtToken
 		// outgoing : error
 		var error = '';
@@ -103,25 +104,25 @@ exports.setApp = function (app, client)
 		{
 			if (token.isExpired(jwtToken))
 			{
-				var r = {error:'The JWT is no longer valid', jwtToken: ''};
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
 				res.status(200).json(r);
 				return;
 			}
 		}
 
-		catch(e)
+		catch (e)
 		{
 			console.log(e.message);
 		}
 
-		const newAlbum = {Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover};
+		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
 
 		try
 		{
 			const db = client.db("Turntable");
 			const result = db.collection("Albums").insertOne(newAlbum);
 		}
-		catch(e)
+		catch (e)
 		{
 			error = e.toString();
 		}
@@ -133,17 +134,17 @@ exports.setApp = function (app, client)
 			refreshedToken = token.refresh(jwtToken);
 		}
 
-		catch(e)
+		catch (e)
 		{
 			console.log(e.message);
 		}
 
-		var ret = {error: error, jwtToken: refreshedToken};
+		var ret = { error: error, jwtToken: refreshedToken };
 		res.status(200).json(ret);
-    });
+	});
 
-    app.post('/api/addartist', async (req, res, next) =>
-    {
+	app.post('/api/addartist', async (req, res, next) => 
+	{
 		// incoming : name, year, genres(array), rating, albums(array), jwtToken
 		// outgoing : error
 		var error = '';
@@ -156,25 +157,25 @@ exports.setApp = function (app, client)
 		{
 			if (token.isExpired(jwtToken))
 			{
-				var r = {error:'The JWT is no longer valid', jwtToken: ''};
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
 				res.status(200).json(r);
 				return;
 			}
 		}
 
-		catch(e)
+		catch (e)
 		{
 			console.log(e.message);
 		}
 
-		const newArtist = {Name: name, Year: year, Genres: genres, Rating: rating, Albums: albums};
+		const newArtist = { Name: name, Year: year, Genres: genres, Rating: rating, Albums: albums };
 
 		try
 		{
 			const db = client.db("Turntable");
 			const result = db.collection("Artists").insertOne(newArtist);
 		}
-		catch(e)
+		catch (e)
 		{
 			error = e.toString();
 		}
@@ -186,13 +187,81 @@ exports.setApp = function (app, client)
 			refreshedToken = token.refresh(jwtToken);
 		}
 
-		catch(e)
+		catch (e)
 		{
 			console.log(e.message);
 		}
 
-		var ret = {error: error, jwtToken: refreshedToken};
+		var ret = { error: error, jwtToken: refreshedToken };
 		res.status(200).json(ret);
-    });
+	});
+
+	// Define a route to search for albums using Last.fm API
+	app.get('/lastfm/albums', async (req, res) =>
+	{
+		// incoming: search, jwtToken
+		// outgoing: everything??
+		require('dotenv').config();
+		const key = process.env.LASTFM_API_KEY;
+
+		var error = '';
+
+		const { search, jwtToken } = req.body;
+
+		var token = require('./createJWT.js');
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		try
+		{
+			// Make a request to the Last.fm API
+			const response = await axios.get('http://ws.audioscrobbler.com/2.0/',
+			{
+				params:
+				{
+					method: 'ALBUM.search',
+					album: search,
+					api_key: key,
+					format: 'json'
+				}
+			});
+
+			var refreshedToken = null;
+
+			try
+			{
+				refreshedToken = token.refresh(jwtToken);
+			}
+
+			catch (e)
+			{
+				console.log(e.message);
+			}
+
+			
+
+			// Send the response data back to the client
+			res.json({ response: response.data.results.albummatches.album[0], error: error, refreshedToken: refreshedToken });
+		}
+		catch (error)
+		{
+			// Handle errors
+			console.error('Error fetching data from Last.fm:', error);
+			res.status(500).json({ error: 'Error fetching data from Last.fm' });
+		}
+	});
 
 }
