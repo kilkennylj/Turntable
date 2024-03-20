@@ -196,11 +196,11 @@ exports.setApp = function (app, client) {
 		res.status(200).json(ret);
 	});
 
-	// Define a route to search for albums using Last.fm API
-	app.get('/lastfm/albums', async (req, res) =>
+	// NOTICE, THIS USES GET NOT POST!!
+	app.get('/api/searchalbum', async (req, res) =>
 	{
 		// incoming: search, jwtToken
-		// outgoing: everything??
+		// outgoing: name, artist, cover, error, refreshedToken
 		require('dotenv').config();
 		const key = process.env.LASTFM_API_KEY;
 
@@ -251,10 +251,16 @@ exports.setApp = function (app, client) {
 				console.log(e.message);
 			}
 
-			
+			const album = response.data.results.albummatches.album[0];
+
+			const name = album.name;
+			const artist = album.artist;
+
+			// Change 0 to a different number for different sizes
+			const cover = album.image[0]['#text'];
 
 			// Send the response data back to the client
-			res.json({ response: response.data.results.albummatches.album[0], error: error, refreshedToken: refreshedToken });
+			res.json({ name, artist, cover, error: error, refreshedToken: refreshedToken });
 		}
 		catch (error)
 		{
