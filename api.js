@@ -173,6 +173,17 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
+		const searchRes = await albumSearch(key, search);
+		const name = searchRes.name;
+		const artist = searchRes.artist;
+		const cover = searchRes.cover;
+
+		var year;
+		var genres = [];
+		var rating;
+		var tracks = [];
+		var length = [];
+		
 		// LastFM integration
 		try
 		{
@@ -181,8 +192,9 @@ exports.setApp = function (app, client) {
 			{
 				params:
 				{
-					method: 'ALBUM.search',
-					album: search,
+					method: 'ALBUM.getInfo',
+					artist: artist,
+					album: name,
 					api_key: key,
 					format: 'json'
 				}
@@ -200,15 +212,22 @@ exports.setApp = function (app, client) {
 				console.log(e.message);
 			}
 
-			// const searchRes = ; // equals something
-			// const name;
-			// const artist;
+			const album = response.data.album;
 
-			// Change 0 to a different number for different sizes
-			const cover = album.image[0]['#text'];
+			year = 0; // We need a work around for this
 
-			// Send the response data back to the client
-			res.json({ name, artist, cover, error: error, refreshedToken: refreshedToken });
+			for(var i = 0; i < album.tags.tag.length; i++)
+			{
+				genres[i] = album.tags.tag[i].name;
+			}
+
+			rating = 5; // Also need a work around. My bad here
+
+			for(var i = 0; i < album.tracks.track.length; i++)
+			{
+				tracks[i] = album.tracks.track[i].name;
+				length[i] = album.tracks.track[i].duration;
+			}
 		}
 		catch (error)
 		{
