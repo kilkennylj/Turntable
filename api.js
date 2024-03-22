@@ -90,7 +90,8 @@ exports.setApp = function (app, client) {
 		res.status(200).json(ret);
 	});
 
-	app.post('/api/addalbum', async (req, res, next) =>
+	// Slow old way. Will delete later, just kept to avoid some confusion.
+/*	app.post('/api/addalbum', async (req, res, next) =>
 	{
 		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover, jwtToken
 		// outgoing : error
@@ -113,6 +114,107 @@ exports.setApp = function (app, client) {
 		catch (e)
 		{
 			console.log(e.message);
+		}
+
+		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
+
+		try
+		{
+			const db = client.db("Turntable");
+			const result = db.collection("Albums").insertOne(newAlbum);
+		}
+		catch (e)
+		{
+			error = e.toString();
+		}
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		var ret = { error: error, jwtToken: refreshedToken };
+		res.status(200).json(ret);
+	});
+	*/
+
+	app.post('/api/addalbum', async (req, res, next) =>
+	{
+		// incoming : search, jwtToken
+		// outgoing : error
+		var error = '';
+
+		const { search, jwtToken } = req.body;
+
+		require('dotenv').config();
+		const key = process.env.LASTFM_API_KEY;
+
+		var token = require('./createJWT.js');
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		// LastFM integration
+		try
+		{
+			// Make a request to the Last.fm API
+			const response = await axios.get('http://ws.audioscrobbler.com/2.0/',
+			{
+				params:
+				{
+					method: 'ALBUM.search',
+					album: search,
+					api_key: key,
+					format: 'json'
+				}
+			});
+
+			var refreshedToken = null;
+
+			try
+			{
+				refreshedToken = token.refresh(jwtToken);
+			}
+
+			catch (e)
+			{
+				console.log(e.message);
+			}
+
+			// const searchRes = ; // equals something
+			// const name;
+			// const artist;
+
+			// Change 0 to a different number for different sizes
+			const cover = album.image[0]['#text'];
+
+			// Send the response data back to the client
+			res.json({ name, artist, cover, error: error, refreshedToken: refreshedToken });
+		}
+		catch (error)
+		{
+			// Handle errors
+			console.error('Error fetching data from Last.fm:', error);
+			res.status(500).json({ error: 'Error fetching data from Last.fm' });
 		}
 
 		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
@@ -197,6 +299,7 @@ exports.setApp = function (app, client) {
 	});
 
 	// NOTICE, THIS USES GET NOT POST!!
+	// This searchs LastFM for an album given some text relating to album title
 	app.get('/api/searchalbum', async (req, res) =>
 	{
 		// incoming: search, jwtToken
@@ -225,6 +328,39 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
+		results = await albumSearch(key, search);
+
+		const name = results.name;
+
+		if(results.error == null || results.error.length == 0)
+		{
+			var refreshedToken = null;
+
+			try
+			{
+				refreshedToken = token.refresh(jwtToken);
+			}
+	
+			catch (e)
+			{
+				console.log(e.message);
+			}
+
+			var ret = { results, refreshedToken: refreshedToken}
+
+			res.status(200).json(ret);
+		}	
+
+		// should be correct for when it fails. hard to test since it only happens when the API limit is reached.
+		else
+			res.status(500).json(results.error);
+	});
+
+	// LastFM integration
+	// This is the function that finds an album based off of album title text
+	async function albumSearch(key, search)
+	{	
+		var error = '';
 		try
 		{
 			// Make a request to the Last.fm API
@@ -239,18 +375,6 @@ exports.setApp = function (app, client) {
 				}
 			});
 
-			var refreshedToken = null;
-
-			try
-			{
-				refreshedToken = token.refresh(jwtToken);
-			}
-
-			catch (e)
-			{
-				console.log(e.message);
-			}
-
 			const album = response.data.results.albummatches.album[0];
 
 			const name = album.name;
@@ -259,15 +383,17 @@ exports.setApp = function (app, client) {
 			// Change 0 to a different number for different sizes
 			const cover = album.image[0]['#text'];
 
+			const results = {name : name, artist: artist, cover : cover, error: error}
+			
 			// Send the response data back to the client
-			res.json({ name, artist, cover, error: error, refreshedToken: refreshedToken });
+			return(results);
 		}
 		catch (error)
 		{
 			// Handle errors
 			console.error('Error fetching data from Last.fm:', error);
-			res.status(500).json({ error: 'Error fetching data from Last.fm' });
+			return({ error: 'Error fetching data from Last.fm' });
 		}
-	});
+	}
 
 }
