@@ -173,70 +173,7 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
-		const searchRes = await albumSearch(key, search);
-		const name = searchRes.name;
-		const artist = searchRes.artist;
-		const cover = searchRes.cover;
-
-		var year;
-		var genres = [];
-		var rating;
-		var tracks = [];
-		var length = [];
-		
-		// LastFM integration
-		try
-		{
-			// Make a request to the Last.fm API
-			const response = await axios.get('http://ws.audioscrobbler.com/2.0/',
-			{
-				params:
-				{
-					method: 'ALBUM.getInfo',
-					artist: artist,
-					album: name,
-					api_key: key,
-					format: 'json'
-				}
-			});
-
-			var refreshedToken = null;
-
-			try
-			{
-				refreshedToken = token.refresh(jwtToken);
-			}
-
-			catch (e)
-			{
-				console.log(e.message);
-			}
-
-			const album = response.data.album;
-
-			year = 0; // We need a work around for this
-
-			for(var i = 0; i < album.tags.tag.length; i++)
-			{
-				genres[i] = album.tags.tag[i].name;
-			}
-
-			rating = 5; // Also need a work around. My bad here
-
-			for(var i = 0; i < album.tracks.track.length; i++)
-			{
-				tracks[i] = album.tracks.track[i].name;
-				length[i] = album.tracks.track[i].duration;
-			}
-		}
-		catch (error)
-		{
-			// Handle errors
-			console.error('Error fetching data from Last.fm:', error);
-			res.status(500).json({ error: 'Error fetching data from Last.fm' });
-		}
-
-		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
+		const newAlbum = await albumInfoSearch(key, search)
 
 		try
 		{
@@ -360,7 +297,7 @@ exports.setApp = function (app, client) {
 		// If it isn't in our database, search LastFM
 		else
 		{
-			results = await albumSearch(key, search);
+			results = await albumInfoSearch(key, search);
 
 			const name = results.name;
 
@@ -390,11 +327,13 @@ exports.setApp = function (app, client) {
 		}
 	});
 
-	// LastFM integration
+	// LastFM integration below here
+
 	// This is the function that finds an album based off of album title text
 	async function albumSearch(key, search)
 	{	
 		var error = '';
+
 		try
 		{
 			// Make a request to the Last.fm API
@@ -428,6 +367,66 @@ exports.setApp = function (app, client) {
 			console.error('Error fetching data from Last.fm:', error);
 			return({ error: 'Error fetching data from Last.fm' });
 		}
+	}
+
+	// This is the function that gets the info that goes into the database and shows off a search.
+	async function albumInfoSearch(key, search)
+	{
+		var searchRes = await albumSearch(key, search);
+
+		var name = searchRes.name;
+		var artist = searchRes.artist;
+
+		var year = 0; // Need a workaround, documentation was wrong.
+		var genres = [];
+		var rating = 5; // Need a workaround, my bad.
+		var tracks = [];
+		var length = [];
+		var cover;
+
+
+		try
+		{
+			// Make a request to the Last.fm API
+			const response = await axios.get('http://ws.audioscrobbler.com/2.0/',
+			{
+				params:
+				{
+					method: 'ALBUM.getInfo',
+					artist: artist,
+					album: name,
+					api_key: key,
+					format: 'json'
+				}
+			});
+
+			const album = response.data.album;
+
+			year = 0; // We need a work around for this
+
+			for(var i = 0; i < album.tags.tag.length; i++)
+			{
+				genres[i] = album.tags.tag[i].name;
+			}
+
+			rating = 5; // Also need a work around. My bad here
+
+			for(var i = 0; i < album.tracks.track.length; i++)
+			{
+				tracks[i] = album.tracks.track[i].name;
+				length[i] = album.tracks.track[i].duration;
+			}
+		}
+		catch (error)
+		{
+			// Handle errors
+			console.error('Error fetching data from Last.fm:', error);
+			return { error: 'Error fetching data from Last.fm' };
+		}
+
+		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
+
+		return newAlbum;
 	}
 
 }
