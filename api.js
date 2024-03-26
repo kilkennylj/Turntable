@@ -347,32 +347,47 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
-		results = await albumSearch(key, search);
+		// Checks our MongoDB Database first.
+		const db = client.db("Turntable");
+		var results = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
 
-		const name = results.name;
-
-		if(results.error == null || results.error.length == 0)
+		if (results.length > 0)
 		{
-			var refreshedToken = null;
-
-			try
-			{
-				refreshedToken = token.refresh(jwtToken);
-			}
-	
-			catch (e)
-			{
-				console.log(e.message);
-			}
-
-			var ret = { results, refreshedToken: refreshedToken}
-
+			var ret = {results: results[0], error:error};
 			res.status(200).json(ret);
-		}	
+		}
 
-		// should be correct for when it fails. hard to test since it only happens when the API limit is reached.
+		// If it isn't in our database, search LastFM
 		else
-			res.status(500).json(results.error);
+		{
+			results = await albumSearch(key, search);
+
+			const name = results.name;
+
+			// Excessive but safe
+			if(results.error == null || results.error.length == 0)
+			{
+				var refreshedToken = null;
+
+				try
+				{
+					refreshedToken = token.refresh(jwtToken);
+				}
+		
+				catch (e)
+				{
+					console.log(e.message);
+				}
+
+				var ret = { results, refreshedToken: refreshedToken}
+
+				res.status(200).json(ret);
+			}	
+
+			// should be correct for when it fails. hard to test since it only happens when the API limit is reached.
+			else
+				res.status(500).json(results.error);
+		}
 	});
 
 	// LastFM integration
