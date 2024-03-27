@@ -185,6 +185,11 @@ exports.setApp = function (app, client) {
 			error = e.toString();
 		}
 
+		var artist = newAlbum.artist;
+
+		// Checks DB for the artist
+		var isArtist = searchArtist(artist);
+
 		var refreshedToken = null;
 
 		try
@@ -326,6 +331,18 @@ exports.setApp = function (app, client) {
 				res.status(500).json(results.error);
 		}
 	});
+
+
+	async function artistSearch(search)
+	{
+		const db = client.db("Turntable");
+		const result = await db.collection('Artists').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+
+		if (result == null)
+			return false;
+		else
+			return true;
+	}
 
 	// LastFM integration below here
 
