@@ -2,3 +2,6 @@
 node_modules
 .env
 .DS_Store
+
+# React Component Preview
+previewConfig.json
