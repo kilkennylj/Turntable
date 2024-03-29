@@ -474,6 +474,8 @@ exports.setApp = function (app, client)
 				error = e.toString();
 			}
 
+			await albumFix(newAlbum._id);
+
 			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
 
 			// Checks DB for the artist
@@ -592,6 +594,89 @@ exports.setApp = function (app, client)
 		const newAlbum = { Name: name, Artist: artist, Year: year, Tags: tags, Tracks: tracks, Length: length, Cover: cover };
 
 		return newAlbum;
+	}
+
+	// Checks given album for messed up things, then fixes them. Runs after adding
+	async function albumFix(albumId)
+	{
+		require('dotenv').config();
+		const axios = require('axios');
+		
+		// Generates a spotify api key. They expire every hour. Very annoying
+		const key = process.env.SPOTIFY_API_KEY;
+
+		// Grab the album name from the db
+		const db = client.db("Turntable");
+		var dbCheck = await db.collection('Albums').find({_id: albumId}).toArray();
+		var album = dbCheck[0];
+
+		const albumName = album.Name;
+		const artistName = album.Artist;
+		var spotifyId;
+		var year;
+		
+		// Gets Spotify ID and year. Needed for every album
+		try
+		{
+			const query = `${albumName} ${artistName}`;
+			const response = await axios.get('https://api.spotify.com/v1/search',
+			{
+				params:
+				{
+					q: query,
+					type: 'album',
+					limit: 1
+				},
+				headers: 
+				{
+					'Authorization': `Bearer ${key}`
+				}
+			});
+
+			spotifyId = response.data.albums.items[0].id;
+			var date = response.data.albums.items[0].release_date;
+
+			year = parseInt(date.substring(0, 4));
+		} 
+		catch (e) 
+		{
+			console.log(e);
+		}
+
+		album.Year = year;
+
+		const url = `https://api.spotify.com/v1/albums/${spotifyId}`;
+
+		var isError = false;
+
+		var response;
+
+		// Checks for bad values
+		for (var i = 0; i < album.Tracks.length; i++)
+		{
+			// If broken, fix using Spotify
+			if (album.Length[i] == null)
+			{
+				// Runs spotify API max of once
+				if (!isError)
+				{
+					response = await axios.get(url,
+					{
+						headers:
+						{
+							'Authorization': `Bearer ${key}`
+						}
+					})
+					isError = true;
+				}
+				
+				var milli = response.data.tracks.items[i].duration_ms;
+
+				album.Length[i] = Math.ceil(milli / 1000);
+			}
+		}
+
+		await db.collection("Albums").replaceOne( {_id: albumId}, album );
 	}
 
 }
