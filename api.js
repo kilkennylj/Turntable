@@ -62,7 +62,7 @@ exports.setApp = function (app, client)
 
 	app.post('/api/register', async (req, res, next) =>
 	{
-		// incoming : firstName, lastName, login, password, email, albums(empty)
+		// incoming : firstName, lastName, login, password, email
 		// outgoing : results, error
 		var error = '';
 
@@ -73,12 +73,13 @@ exports.setApp = function (app, client)
 		try
 		{
 			const db = client.db("Turntable");
-			var albums = [];
+			var albums = []; // Empty. Don't enter for API
+			var ratings = []; // Empty. Don't enter for API
 
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
-			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
+			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email };
 			_ret = await db.collection('Users').insertOne(newUser);
 		}
 		catch (e)
@@ -202,6 +203,24 @@ exports.setApp = function (app, client)
 		}
 	});
 
+	// NOT DONE
+	app.post('/api/adduseralbum', async (req, res, next) =>
+	{
+		// incoming: userId, name, jwtToken
+		// outgoing: error, jwtToken
+		/*
+			This one is simple because of the functions at the bottom.
+			Use SearchAlbum, grab _id, add it to the user's album array, add (int)-1 to rating's array.
+			You will need to grab the LastFM key from the .env here.
+			
+			REMEMBER! When calling an ASYNC function write await before the call.
+			var results = await searchArtist(search);
+
+			Delete this block comment once completed
+		*/
+		res.status(500).json( {error: "Has not been completed yet." } );
+	});
+
 	app.post('/api/addartist', async (req, res, next) => 
 	{
 		// incoming : name, albums(array), jwtToken
@@ -247,12 +266,27 @@ exports.setApp = function (app, client)
 		res.status(200).json(ret);
 	});
 
+	// NOT DONE
+	app.post('/api/updateuserrating', async (req, res, next) =>
+	{
+		// incoming: userId, search, jwtToken
+		// outgoing: error, jwtToken
+
+		/*
+			Call searchUserAlbum.
+			Find array position of the returned _id.
+			Update that position in rating array.
+		*/
+
+		res.status(500).json( {error: "Has not been completed yet." } );
+	});
+
 	// NOTICE, THIS USES GET NOT POST!!
-	// This searchs LastFM for an album given some text relating to album title
+	// This searches LastFM for an album given some text relating to album title
 	app.get('/api/searchalbum', async (req, res) =>
 	{
 		// incoming: search, jwtToken
-		// outgoing: name, artist, cover, error, jwtToken
+		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
 		require('dotenv').config();
 		const key = process.env.LASTFM_API_KEY;
 
@@ -311,15 +345,34 @@ exports.setApp = function (app, client)
 			results = await addAlbum(key, cleanSearch);
 
 			ret = { results: results.album, jwtToken: refreshedToken }
-
-			res.status(200).json(ret);
 		}
-
-		// ret = { jwtToken: refreshedToken };
 
 		res.status(200).json(ret);
 	});
 
+	// NOT DONE
+	// NOTICE, THIS USES GET NOT POST!!
+	// This searches the database 
+	app.get('app/searchuseralbum', async(req, res) =>
+	{
+		// incoming: userId, search, jwtToken
+		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
+		/*
+			This one is slightly more tricky than other endpoints.
+			 - First DO NOT USE albumSearch. We don't use this because it was made for singular albums.
+			 - What we do is a simple search through our database. 
+				 - This is only one line so its not like it will be a big deal not using that function
+			 - Get ALL of the _id's from the albums.
+			 - Search the user's albums array now for all the values.
+			 - Return all albums that are found in that search.
+
+			Make this a function so I can call it from updateUserRating
+
+			REMEMBER! When calling an ASYNC function write await before the call.
+			var results = await searchArtist(search);
+		*/
+		res.status(500).json( {error: "Has not been completed yet." } );
+	});
 
 	async function searchArtist(search)
 	{
@@ -346,6 +399,7 @@ exports.setApp = function (app, client)
 		return error;
 	}
 
+	// Used mostly for updating albums array
 	async function updateArtist(artistId, albumId)
 	{
 		const db = client.db("Turntable");
@@ -441,7 +495,7 @@ exports.setApp = function (app, client)
 		}
 	}
 
-	// LastFM integration below here
+	// LastFM integration below here. Flipped function naming convention to show they are different.
 
 	// This is the function that finds an album based off of album title text
 	async function albumSearch(key, search)
