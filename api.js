@@ -3,6 +3,8 @@ require('mongodb');
 
 const axios = require('axios')
 
+var spotifyKey;
+
 exports.setApp = function (app, client)
 {
 	// This is the code from MERN C. It is completely incorrect
@@ -314,7 +316,7 @@ exports.setApp = function (app, client)
 		// Fix typo and clean string. Extra LastFM API call but it allows typos
 		var cleanSearch = (await albumSearch(key, search)).name;
 
-		cleanSearch = cleanSearch.replace(/[^a-zA-Z0-9\s']/g, '');
+		cleanSearch = cleanSearch.replace(/"/g, '');
 
 		// Checks our MongoDB Database first.
 		const db = client.db("Turntable");
@@ -430,11 +432,13 @@ exports.setApp = function (app, client)
 		}
 
 		if (dbCheck.length > 0)
+		{
 			return({ error: "Album already in database"});
+		}
 
 		else
 		{
-			const newAlbum = await albumInfoSearch(key, search);
+			var newAlbum = await albumInfoSearch(key, search);
 
 			// Checks again with new name, gets edge cases.
 			try
@@ -442,7 +446,7 @@ exports.setApp = function (app, client)
 				const db = client.db("Turntable");
 
 				// Allows alphabet, numbers, (), '', and spaces
-				newAlbum.Name = newAlbum.Name.replace(/[^a-zA-Z0-9\s']/g, '');
+				newAlbum.Name = newAlbum.Name.replace(/"/g, '');
 
 				// Checks if the album is already there
 				var dbCheck = await db.collection('Albums').find({ 
@@ -464,6 +468,8 @@ exports.setApp = function (app, client)
 				return( { error: "Album already in database" } );
 			}
 
+			newAlbum = await albumFix(newAlbum);
+
 			try
 			{
 				const db = client.db("Turntable");
@@ -473,8 +479,6 @@ exports.setApp = function (app, client)
 			{
 				error = e.toString();
 			}
-
-			await albumFix(newAlbum._id);
 
 			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
 
@@ -571,8 +575,6 @@ exports.setApp = function (app, client)
 
 			const album = response.data.album;
 
-			year = 0; // We need a work around for this
-
 			for(var i = 0; i < album.tags.tag.length; i++)
 			{
 				tags[i] = album.tags.tag[i].name;
@@ -597,18 +599,59 @@ exports.setApp = function (app, client)
 	}
 
 	// Checks given album for messed up things, then fixes them. Runs after adding
-	async function albumFix(albumId)
+	async function albumFix(album)
 	{
-		require('dotenv').config();
+		const dotenv = require('dotenv');
 		const axios = require('axios');
 		
 		// Generates a spotify api key. They expire every hour. Very annoying
-		const key = process.env.SPOTIFY_API_KEY;
+		spotifyKey = process.env.SPOTIFY_API_KEY;
 
+		// Check if key is expired. If so, renew and update dotenv
+		try
+		{
+			const response = await axios.get('https://api.spotify.com/v1/search',
+			{
+				params:
+				{
+					q: 'Philosophy of the World', // Without this search the website will break
+					type: 'album',
+					limit: 1
+				},
+				headers: 
+				{
+					'Authorization': `Bearer ${spotifyKey}`
+				}
+			});
+		}
+
+		// Bad code, here just assume token is not good.
+		catch(e)
+		{
+			const clientId = process.env.SPOTIFY_CLIENT_ID;
+			const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+
+			const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', null,
+			{
+				params:
+				{
+					grant_type: 'client_credentials'
+				},
+				auth: 
+				{
+					username: clientId,
+					password: clientSecret
+				}
+			});
+
+			// Define the new token value
+			const newTokenValue = tokenResponse.data.access_token;
+			spotifyKey = newTokenValue;
+		}
 		// Grab the album name from the db
-		const db = client.db("Turntable");
-		var dbCheck = await db.collection('Albums').find({_id: albumId}).toArray();
-		var album = dbCheck[0];
+		// const db = client.db("Turntable");
+		// var dbCheck = await db.collection('Albums').find({_id: albumId}).toArray();
+		// var album = dbCheck[0];
 
 		const albumName = album.Name;
 		const artistName = album.Artist;
@@ -629,7 +672,7 @@ exports.setApp = function (app, client)
 				},
 				headers: 
 				{
-					'Authorization': `Bearer ${key}`
+					'Authorization': `Bearer ${spotifyKey}`
 				}
 			});
 
@@ -645,8 +688,6 @@ exports.setApp = function (app, client)
 
 		album.Year = year;
 
-		const url = `https://api.spotify.com/v1/albums/${spotifyId}`;
-
 		var isError = false;
 
 		var response;
@@ -660,11 +701,11 @@ exports.setApp = function (app, client)
 				// Runs spotify API max of once
 				if (!isError)
 				{
-					response = await axios.get(url,
+					response = await axios.get(`https://api.spotify.com/v1/albums/${spotifyId}`,
 					{
 						headers:
 						{
-							'Authorization': `Bearer ${key}`
+							'Authorization': `Bearer ${spotifyKey}`
 						}
 					})
 					isError = true;
@@ -676,7 +717,7 @@ exports.setApp = function (app, client)
 			}
 		}
 
-		await db.collection("Albums").replaceOne( {_id: albumId}, album );
+		return album;
 	}
 
 }
