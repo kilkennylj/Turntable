@@ -63,7 +63,7 @@ exports.setApp = function (app, client)
 	app.post('/api/register', async (req, res, next) =>
 	{
 		// incoming : firstName, lastName, login, password, email, albums(empty)
-		// outgoing : error
+		// outgoing : results, error
 		var error = '';
 
 		const { firstName, lastName, email, login, password } = req.body;
@@ -149,8 +149,9 @@ exports.setApp = function (app, client)
 	app.post('/api/addalbum', async (req, res, next) =>
 	{
 		// incoming : search, jwtToken
-		// outgoing : error
-		var error = '';
+		// outgoing : error, jwtToken
+
+		var error = "";
 
 		const { search, jwtToken } = req.body;
 
@@ -174,56 +175,15 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		var dbCheck;
-
-		try
-		{
-			const db = client.db("Turntable");
-
-			// Checks if the album is already there
-			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
-		}
+		var ret = await addAlbum(search, key);
 		
-		catch(e)
+		if (ret.error.length > 0)
 		{
-			console.log(e.message);
+			res.status(500).json( { error: ret.error } );
 		}
-
-		if (dbCheck.length > 0)
-			res.status(500).json({ error: "Album already in database"})
 
 		else
 		{
-			const newAlbum = await albumInfoSearch(key, search)
-
-			try
-			{
-				const db = client.db("Turntable");
-				const result = db.collection("Albums").insertOne(newAlbum);
-			}
-			catch (e)
-			{
-				error = e.toString();
-			}
-
-			// Need to fix albums
-			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
-
-			// Checks DB for the artist
-			const searchRes = await searchArtist(artist.Name);
-
-			// If not in DB, add it
-			if (searchRes.length == 0)
-			{
-				await addArtist(artist);
-			}
-
-			// If it is in DB, add the album to the artist
-			else
-			{
-				await updateArtist(searchRes[0]._id, newAlbum._id);
-			}
-
 			var refreshedToken = null;
 
 			try
@@ -237,6 +197,7 @@ exports.setApp = function (app, client)
 			}
 
 			var ret = { error: error, jwtToken: refreshedToken };
+
 			res.status(200).json(ret);
 		}
 	});
@@ -244,7 +205,7 @@ exports.setApp = function (app, client)
 	app.post('/api/addartist', async (req, res, next) => 
 	{
 		// incoming : name, albums(array), jwtToken
-		// outgoing : error
+		// outgoing : error, jwtToken
 		var error = '';
 
 		const { name, albums, jwtToken } = req.body;
@@ -291,7 +252,7 @@ exports.setApp = function (app, client)
 	app.get('/api/searchalbum', async (req, res) =>
 	{
 		// incoming: search, jwtToken
-		// outgoing: name, artist, cover, error, refreshedToken
+		// outgoing: name, artist, cover, error, jwtToken
 		require('dotenv').config();
 		const key = process.env.LASTFM_API_KEY;
 
@@ -393,6 +354,91 @@ exports.setApp = function (app, client)
 			{ _id: artistId },
 			{ $push: { Albums: albumId } }
 		  );
+	}
+
+	async function addAlbum(search, key)
+	{
+		var dbCheck;
+		var error = "";
+
+		// Checks with user inputted album name. Doesn't get edge cases.
+		try
+		{
+			const db = client.db("Turntable");
+
+			// Checks if the album is already there
+			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+		}
+		
+		catch(e)
+		{
+			console.log(e.message);
+		}
+
+		if (dbCheck.length > 0)
+			return({ error: "Album already in database"});
+
+		else
+		{
+			const newAlbum = await albumInfoSearch(key, search);
+
+			// Checks again with new name, gets edge cases.
+			try
+			{
+				const db = client.db("Turntable");
+
+				// Allows alphabet, numbers, (), '', and spaces
+				newAlbum.Name = newAlbum.Name.replace(/[^a-zA-Z0-9\s']/g, '');
+
+				// Checks if the album is already there
+				var dbCheck = await db.collection('Albums').find({ 
+					Name: { 
+						$regex: newAlbum.Name + '.*', 
+						$options: 'i'
+					}
+				}).toArray();
+			}
+		
+			catch(e)
+			{
+				console.log(e.message);
+			}
+
+			if (dbCheck.length > 0)
+			{	
+				return( { error: "Album already in database" } );
+			}
+
+			try
+			{
+				const db = client.db("Turntable");
+				const result = db.collection("Albums").insertOne(newAlbum);
+			}
+			catch (e)
+			{
+				error = e.toString();
+			}
+
+			// Need to fix albums
+			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
+
+			// Checks DB for the artist
+			const searchRes = await searchArtist(artist.Name);
+
+			// If not in DB, add it
+			if (searchRes.length == 0)
+			{
+				await addArtist(artist);
+			}
+
+			// If it is in DB, add the album to the artist
+			else
+			{
+				await updateArtist(searchRes[0]._id, newAlbum._id);
+			}
+
+			return ({error: error});
+		}
 	}
 
 	// LastFM integration below here
