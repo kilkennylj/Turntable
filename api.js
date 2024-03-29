@@ -175,7 +175,7 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		var ret = await addAlbum(search, key);
+		var ret = await addAlbum(key, search);
 		
 		if (ret.error.length > 0)
 		{
@@ -277,47 +277,47 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
+		// Fix typo and clean string. Extra LastFM API call but it allows typos
+		var cleanSearch = (await albumSearch(key, search)).name;
+
+		cleanSearch = cleanSearch.replace(/[^a-zA-Z0-9\s']/g, '');
+
 		// Checks our MongoDB Database first.
 		const db = client.db("Turntable");
-		var results = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
+
+		var ret;
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
 
 		if (results.length > 0)
 		{
-			var ret = {results: results[0], error:error};
-			res.status(200).json(ret);
+			ret = {results: results[0], error:error, jwtToken: refreshedToken};
 		}
 
 		// If it isn't in our database, search LastFM
 		else
 		{
-			results = await albumInfoSearch(key, search);
+			results = await addAlbum(key, cleanSearch);
 
-			const name = results.name;
+			ret = { results: results.album, jwtToken: refreshedToken }
 
-			// Excessive but safe
-			if(results.error == null || results.error.length == 0)
-			{
-				var refreshedToken = null;
-
-				try
-				{
-					refreshedToken = token.refresh(jwtToken);
-				}
-		
-				catch (e)
-				{
-					console.log(e.message);
-				}
-
-				var ret = { results, refreshedToken: refreshedToken}
-
-				res.status(200).json(ret);
-			}	
-
-			// should be correct for when it fails. hard to test since it only happens when the API limit is reached.
-			else
-				res.status(500).json(results.error);
+			res.status(200).json(ret);
 		}
+
+		// ret = { jwtToken: refreshedToken };
+
+		res.status(200).json(ret);
 	});
 
 
@@ -346,7 +346,6 @@ exports.setApp = function (app, client)
 		return error;
 	}
 
-	// Need to create this and put it in addAlbum
 	async function updateArtist(artistId, albumId)
 	{
 		const db = client.db("Turntable");
@@ -356,7 +355,8 @@ exports.setApp = function (app, client)
 		  );
 	}
 
-	async function addAlbum(search, key)
+	// Adds album to the db then returns an album and an error
+	async function addAlbum(key, search)
 	{
 		var dbCheck;
 		var error = "";
@@ -392,7 +392,8 @@ exports.setApp = function (app, client)
 
 				// Checks if the album is already there
 				var dbCheck = await db.collection('Albums').find({ 
-					Name: { 
+					Name: 
+					{ 
 						$regex: newAlbum.Name + '.*', 
 						$options: 'i'
 					}
@@ -419,7 +420,6 @@ exports.setApp = function (app, client)
 				error = e.toString();
 			}
 
-			// Need to fix albums
 			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
 
 			// Checks DB for the artist
@@ -436,8 +436,8 @@ exports.setApp = function (app, client)
 			{
 				await updateArtist(searchRes[0]._id, newAlbum._id);
 			}
-
-			return ({error: error});
+			// return album error or just one
+			return ({album: newAlbum, error: error});
 		}
 	}
 
