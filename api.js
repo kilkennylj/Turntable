@@ -3,7 +3,8 @@ require('mongodb');
 
 const axios = require('axios')
 
-exports.setApp = function (app, client) {
+exports.setApp = function (app, client)
+{
 	// This is the code from MERN C. It is completely incorrect
 	// I have no idea why he asks us to add it here. It is wrong.
 	// I'm keeping in here just in case.
@@ -173,46 +174,80 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
-		const newAlbum = await albumInfoSearch(key, search)
+		var dbCheck;
 
 		try
 		{
 			const db = client.db("Turntable");
-			const result = db.collection("Albums").insertOne(newAlbum);
+
+			// Checks if the album is already there
+			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
 		}
-		catch (e)
-		{
-			error = e.toString();
-		}
-
-		var artist = newAlbum.artist;
-
-		// Checks DB for the artist
-		var isArtist = searchArtist(artist);
-
-		var refreshedToken = null;
-
-		try
-		{
-			refreshedToken = token.refresh(jwtToken);
-		}
-
-		catch (e)
+		
+		catch(e)
 		{
 			console.log(e.message);
 		}
 
-		var ret = { error: error, jwtToken: refreshedToken };
-		res.status(200).json(ret);
+		if (dbCheck.length > 0)
+			res.status(500).json({ error: "Album already in database"})
+
+		else
+		{
+			const newAlbum = await albumInfoSearch(key, search)
+
+			try
+			{
+				const db = client.db("Turntable");
+				const result = db.collection("Albums").insertOne(newAlbum);
+			}
+			catch (e)
+			{
+				error = e.toString();
+			}
+
+			// Need to fix albums
+			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
+
+			// Checks DB for the artist
+			const searchRes = await searchArtist(artist.Name);
+
+			// If not in DB, add it
+			if (searchRes.length == 0)
+			{
+				await addArtist(artist);
+			}
+
+			// If it is in DB, add the album to the artist
+			else
+			{
+				await updateArtist(searchRes[0]._id, newAlbum._id);
+			}
+
+			var refreshedToken = null;
+
+			try
+			{
+				refreshedToken = token.refresh(jwtToken);
+			}
+
+			catch (e)
+			{
+				console.log(e.message);
+			}
+
+			var ret = { error: error, jwtToken: refreshedToken };
+			res.status(200).json(ret);
+		}
 	});
 
 	app.post('/api/addartist', async (req, res, next) => 
 	{
-		// incoming : name, year, genres(array), rating, albums(array), jwtToken
+		// incoming : name, albums(array), jwtToken
 		// outgoing : error
 		var error = '';
 
-		const { name, year, genres, rating, albums, jwtToken } = req.body;
+		const { name, albums, jwtToken } = req.body;
 
 		var token = require('./createJWT.js');
 
@@ -231,17 +266,9 @@ exports.setApp = function (app, client) {
 			console.log(e.message);
 		}
 
-		const newArtist = { Name: name, Year: year, Genres: genres, Rating: rating, Albums: albums };
+		const newArtist = { Name: name, Albums: albums };
 
-		try
-		{
-			const db = client.db("Turntable");
-			const result = db.collection("Artists").insertOne(newArtist);
-		}
-		catch (e)
-		{
-			error = e.toString();
-		}
+		error = await addArtist(newArtist);
 
 		var refreshedToken = null;
 
@@ -333,15 +360,39 @@ exports.setApp = function (app, client) {
 	});
 
 
-	async function artistSearch(search)
+	async function searchArtist(search)
 	{
 		const db = client.db("Turntable");
-		const result = await db.collection('Artists').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+		const result = await db.collection('Artists').find({Name: {$regex: search, $options:'i'}}).toArray();
 
-		if (result == null)
-			return false;
-		else
-			return true;
+		return result;
+	}
+
+	async function addArtist(newArtist)
+	{
+		var error = '';
+
+		try
+		{
+			const db = client.db("Turntable");
+			const result = db.collection("Artists").insertOne(newArtist);
+		}
+		catch (e)
+		{
+			error = e.toString();
+		}
+
+		return error;
+	}
+
+	// Need to create this and put it in addAlbum
+	async function updateArtist(artistId, albumId)
+	{
+		const db = client.db("Turntable");
+		const result = await db.collection('Artists').updateOne(
+			{ _id: artistId },
+			{ $push: { Albums: albumId } }
+		  );
 	}
 
 	// LastFM integration below here
@@ -370,8 +421,8 @@ exports.setApp = function (app, client) {
 			const name = album.name;
 			const artist = album.artist;
 
-			// Change 0 to a different number for different sizes
-			const cover = album.image[0]['#text'];
+			// Returns largest version of album cover
+			const cover = album.image[album.image.length - 1]['#text'];
 
 			const results = {name : name, artist: artist, cover : cover, error: error}
 			
@@ -393,14 +444,13 @@ exports.setApp = function (app, client) {
 
 		var name = searchRes.name;
 		var artist = searchRes.artist;
-
+		var cover = searchRes.cover;
+		
 		var year = 0; // Need a workaround, documentation was wrong.
-		var genres = [];
-		var rating = 5; // Need a workaround, my bad.
+		var tags = [];
+		// var rating = 5; Only re add if we want a global rating for each album
 		var tracks = [];
 		var length = [];
-		var cover;
-
 
 		try
 		{
@@ -423,10 +473,8 @@ exports.setApp = function (app, client) {
 
 			for(var i = 0; i < album.tags.tag.length; i++)
 			{
-				genres[i] = album.tags.tag[i].name;
+				tags[i] = album.tags.tag[i].name;
 			}
-
-			rating = 5; // Also need a work around. My bad here
 
 			for(var i = 0; i < album.tracks.track.length; i++)
 			{
@@ -441,7 +489,7 @@ exports.setApp = function (app, client) {
 			return { error: 'Error fetching data from Last.fm' };
 		}
 
-		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
+		const newAlbum = { Name: name, Artist: artist, Year: year, Tags: tags, Tracks: tracks, Length: length, Cover: cover };
 
 		return newAlbum;
 	}
