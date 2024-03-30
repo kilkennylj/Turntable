@@ -28,14 +28,14 @@ function AlbumCarousel() {
           <h3>Album Title</h3>
           <p>Artist Name</p>
           <p>Release Date</p>
-        </div>
+        </div> // Gather information from album object
       );
     } else {
       // Otherwise, render the front face content
       return (
         <div className="front">
           <img className="carousel_img" src={`/assets/img/test_${index + 1}.jpg`} alt="Album cover" />
-        </div>
+        </div> // given a index, retrieve img from array used to form carousel
       );
     }
   };
@@ -45,7 +45,7 @@ function AlbumCarousel() {
       return (
         <a>
           <img className="carousel_thumbnail" src={`/assets/img/test_${1+i}.jpg`} />
-        </a>
+        </a> // Iterator through album array
       );
     },
     dots: true,
