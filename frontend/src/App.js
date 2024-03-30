@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
-import CarouselTest from './pages/CarouselTest';
 
 function App() 
 {
@@ -14,7 +13,6 @@ function App()
         <Route path="/login" index element={<LoginPage />} />
         <Route path="/register" index element={<RegisterPage />} />
         <Route path="/landing" index element={<LandingPage />} />
-        <Route path="/carouseltest" index element={<CarouselTest />} />
       </Routes>
     </BrowserRouter>
   );
