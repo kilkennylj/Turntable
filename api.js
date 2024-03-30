@@ -3,6 +3,8 @@ require('mongodb');
 
 const axios = require('axios')
 
+var spotifyKey;
+
 exports.setApp = function (app, client)
 {
 	// This is the code from MERN C. It is completely incorrect
@@ -62,8 +64,8 @@ exports.setApp = function (app, client)
 
 	app.post('/api/register', async (req, res, next) =>
 	{
-		// incoming : firstName, lastName, login, password, email, albums(empty)
-		// outgoing : error
+		// incoming : firstName, lastName, login, password, email
+		// outgoing : results, error
 		var error = '';
 
 		const { firstName, lastName, email, login, password } = req.body;
@@ -73,12 +75,13 @@ exports.setApp = function (app, client)
 		try
 		{
 			const db = client.db("Turntable");
-			var albums = [];
+			var albums = []; // Empty. Don't enter for API
+			var ratings = []; // Empty. Don't enter for API
 
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
-			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Email: email };
+			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email };
 			_ret = await db.collection('Users').insertOne(newUser);
 		}
 		catch (e)
@@ -149,8 +152,9 @@ exports.setApp = function (app, client)
 	app.post('/api/addalbum', async (req, res, next) =>
 	{
 		// incoming : search, jwtToken
-		// outgoing : error
-		var error = '';
+		// outgoing : error, jwtToken
+
+		var error = "";
 
 		const { search, jwtToken } = req.body;
 
@@ -174,56 +178,15 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		var dbCheck;
-
-		try
-		{
-			const db = client.db("Turntable");
-
-			// Checks if the album is already there
-			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
-		}
+		var ret = await addAlbum(key, search);
 		
-		catch(e)
+		if (ret.error.length > 0)
 		{
-			console.log(e.message);
+			res.status(500).json( { error: ret.error } );
 		}
-
-		if (dbCheck.length > 0)
-			res.status(500).json({ error: "Album already in database"})
 
 		else
 		{
-			const newAlbum = await albumInfoSearch(key, search)
-
-			try
-			{
-				const db = client.db("Turntable");
-				const result = db.collection("Albums").insertOne(newAlbum);
-			}
-			catch (e)
-			{
-				error = e.toString();
-			}
-
-			// Need to fix albums
-			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
-
-			// Checks DB for the artist
-			const searchRes = await searchArtist(artist.Name);
-
-			// If not in DB, add it
-			if (searchRes.length == 0)
-			{
-				await addArtist(artist);
-			}
-
-			// If it is in DB, add the album to the artist
-			else
-			{
-				await updateArtist(searchRes[0]._id, newAlbum._id);
-			}
-
 			var refreshedToken = null;
 
 			try
@@ -237,14 +200,33 @@ exports.setApp = function (app, client)
 			}
 
 			var ret = { error: error, jwtToken: refreshedToken };
+
 			res.status(200).json(ret);
 		}
+	});
+
+	// NOT DONE
+	app.post('/api/adduseralbum', async (req, res, next) =>
+	{
+		// incoming: userId, name, jwtToken
+		// outgoing: error, jwtToken
+		/*
+			This one is simple because of the functions at the bottom.
+			Use SearchAlbum, grab _id, add it to the user's album array, add (int)-1 to rating's array.
+			You will need to grab the LastFM key from the .env here.
+			
+			REMEMBER! When calling an ASYNC function write await before the call.
+			var results = await searchArtist(search);
+
+			Delete this block comment once completed
+		*/
+		res.status(500).json( {error: "Has not been completed yet." } );
 	});
 
 	app.post('/api/addartist', async (req, res, next) => 
 	{
 		// incoming : name, albums(array), jwtToken
-		// outgoing : error
+		// outgoing : error, jwtToken
 		var error = '';
 
 		const { name, albums, jwtToken } = req.body;
@@ -286,12 +268,27 @@ exports.setApp = function (app, client)
 		res.status(200).json(ret);
 	});
 
+	// NOT DONE
+	app.post('/api/updateuserrating', async (req, res, next) =>
+	{
+		// incoming: userId, search, jwtToken
+		// outgoing: error, jwtToken
+
+		/*
+			Call searchUserAlbum.
+			Find array position of the returned _id.
+			Update that position in rating array.
+		*/
+
+		res.status(500).json( {error: "Has not been completed yet." } );
+	});
+
 	// NOTICE, THIS USES GET NOT POST!!
-	// This searchs LastFM for an album given some text relating to album title
+	// This searches LastFM for an album given some text relating to album title
 	app.get('/api/searchalbum', async (req, res) =>
 	{
 		// incoming: search, jwtToken
-		// outgoing: name, artist, cover, error, refreshedToken
+		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
 		require('dotenv').config();
 		const key = process.env.LASTFM_API_KEY;
 
@@ -316,49 +313,68 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
+		// Fix typo and clean string. Extra LastFM API call but it allows typos
+		var cleanSearch = (await albumSearch(key, search)).name;
+
+		cleanSearch = cleanSearch.replace(/"/g, '');
+
 		// Checks our MongoDB Database first.
 		const db = client.db("Turntable");
-		var results = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
+
+		var ret;
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
 
 		if (results.length > 0)
 		{
-			var ret = {results: results[0], error:error};
-			res.status(200).json(ret);
+			ret = {results: results[0], error:error, jwtToken: refreshedToken};
 		}
 
 		// If it isn't in our database, search LastFM
 		else
 		{
-			results = await albumInfoSearch(key, search);
+			results = await addAlbum(key, cleanSearch);
 
-			const name = results.name;
-
-			// Excessive but safe
-			if(results.error == null || results.error.length == 0)
-			{
-				var refreshedToken = null;
-
-				try
-				{
-					refreshedToken = token.refresh(jwtToken);
-				}
-		
-				catch (e)
-				{
-					console.log(e.message);
-				}
-
-				var ret = { results, refreshedToken: refreshedToken}
-
-				res.status(200).json(ret);
-			}	
-
-			// should be correct for when it fails. hard to test since it only happens when the API limit is reached.
-			else
-				res.status(500).json(results.error);
+			ret = { results: results.album, jwtToken: refreshedToken }
 		}
+
+		res.status(200).json(ret);
 	});
 
+	// NOT DONE
+	// NOTICE, THIS USES GET NOT POST!!
+	// This searches the database 
+	app.get('app/searchuseralbum', async(req, res) =>
+	{
+		// incoming: userId, search, jwtToken
+		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
+		/*
+			This one is slightly more tricky than other endpoints.
+			 - First DO NOT USE albumSearch. We don't use this because it was made for singular albums.
+			 - What we do is a simple search through our database. 
+				 - This is only one line so its not like it will be a big deal not using that function
+			 - Get ALL of the _id's from the albums.
+			 - Search the user's albums array now for all the values.
+			 - Return all albums that are found in that search.
+
+			Make this a function so I can call it from updateUserRating
+
+			REMEMBER! When calling an ASYNC function write await before the call.
+			var results = await searchArtist(search);
+		*/
+		res.status(500).json( {error: "Has not been completed yet." } );
+	});
 
 	async function searchArtist(search)
 	{
@@ -385,7 +401,7 @@ exports.setApp = function (app, client)
 		return error;
 	}
 
-	// Need to create this and put it in addAlbum
+	// Used mostly for updating albums array
 	async function updateArtist(artistId, albumId)
 	{
 		const db = client.db("Turntable");
@@ -395,7 +411,97 @@ exports.setApp = function (app, client)
 		  );
 	}
 
-	// LastFM integration below here
+	// Adds album to the db then returns an album and an error
+	async function addAlbum(key, search)
+	{
+		var dbCheck;
+		var error = "";
+
+		// Checks with user inputted album name. Doesn't get edge cases.
+		try
+		{
+			const db = client.db("Turntable");
+
+			// Checks if the album is already there
+			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
+		}
+		
+		catch(e)
+		{
+			console.log(e.message);
+		}
+
+		if (dbCheck.length > 0)
+		{
+			return({ error: "Album already in database"});
+		}
+
+		else
+		{
+			var newAlbum = await albumInfoSearch(key, search);
+
+			// Checks again with new name, gets edge cases.
+			try
+			{
+				const db = client.db("Turntable");
+
+				// Allows alphabet, numbers, (), '', and spaces
+				newAlbum.Name = newAlbum.Name.replace(/"/g, '');
+
+				// Checks if the album is already there
+				var dbCheck = await db.collection('Albums').find({ 
+					Name: 
+					{ 
+						$regex: newAlbum.Name + '.*', 
+						$options: 'i'
+					}
+				}).toArray();
+			}
+		
+			catch(e)
+			{
+				console.log(e.message);
+			}
+
+			if (dbCheck.length > 0)
+			{	
+				return( { error: "Album already in database" } );
+			}
+
+			newAlbum = await albumFix(newAlbum);
+
+			try
+			{
+				const db = client.db("Turntable");
+				const result = db.collection("Albums").insertOne(newAlbum);
+			}
+			catch (e)
+			{
+				error = e.toString();
+			}
+
+			var artist =  { Name: newAlbum.Artist, Albums: [newAlbum._id] };
+
+			// Checks DB for the artist
+			const searchRes = await searchArtist(artist.Name);
+
+			// If not in DB, add it
+			if (searchRes.length == 0)
+			{
+				await addArtist(artist);
+			}
+
+			// If it is in DB, add the album to the artist
+			else
+			{
+				await updateArtist(searchRes[0]._id, newAlbum._id);
+			}
+			// return album error or just one
+			return ({album: newAlbum, error: error});
+		}
+	}
+
+	// LastFM integration below here. Flipped function naming convention to show they are different.
 
 	// This is the function that finds an album based off of album title text
 	async function albumSearch(key, search)
@@ -462,6 +568,7 @@ exports.setApp = function (app, client)
 					method: 'ALBUM.getInfo',
 					artist: artist,
 					album: name,
+					lang: 'eng',
 					api_key: key,
 					format: 'json'
 				}
@@ -469,11 +576,13 @@ exports.setApp = function (app, client)
 
 			const album = response.data.album;
 
-			year = 0; // We need a work around for this
-
-			for(var i = 0; i < album.tags.tag.length; i++)
+			// Some albums have no tags? Don't know why
+			if (album.tags!= '')
 			{
-				tags[i] = album.tags.tag[i].name;
+				for(var i = 0; i < album.tags.tag.length; i++)
+				{
+					tags[i] = album.tags.tag[i].name;
+				}
 			}
 
 			for(var i = 0; i < album.tracks.track.length; i++)
@@ -492,6 +601,143 @@ exports.setApp = function (app, client)
 		const newAlbum = { Name: name, Artist: artist, Year: year, Tags: tags, Tracks: tracks, Length: length, Cover: cover };
 
 		return newAlbum;
+	}
+
+	// Checks given album for messed up things, then fixes them. Runs after adding
+	async function albumFix(album)
+	{
+		const dotenv = require('dotenv');
+		const axios = require('axios');
+		
+		// Generates a spotify api key. They expire every hour. Very annoying
+		spotifyKey = process.env.SPOTIFY_API_KEY;
+
+		// Check if key is expired. If so, renew and update dotenv
+		try
+		{
+			const response = await axios.get('https://api.spotify.com/v1/search',
+			{
+				params:
+				{
+					q: 'Philosophy of the World', // Without this search the website will break
+					type: 'album',
+					limit: 1
+				},
+				headers: 
+				{
+					'Authorization': `Bearer ${spotifyKey}`
+				}
+			});
+		}
+
+		// Bad code, here just assume token is not good.
+		catch(e)
+		{
+			const clientId = process.env.SPOTIFY_CLIENT_ID;
+			const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+
+			const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', null,
+			{
+				params:
+				{
+					grant_type: 'client_credentials'
+				},
+				auth: 
+				{
+					username: clientId,
+					password: clientSecret
+				}
+			});
+
+			// Define the new token value
+			const newTokenValue = tokenResponse.data.access_token;
+			spotifyKey = newTokenValue;
+		}
+		// Grab the album name from the db
+		// const db = client.db("Turntable");
+		// var dbCheck = await db.collection('Albums').find({_id: albumId}).toArray();
+		// var album = dbCheck[0];
+
+		const albumName = album.Name;
+		const artistName = album.Artist;
+		var spotifyId;
+		var year;
+		
+		// Gets Spotify ID and year. Needed for every album
+		try
+		{
+			const query = `${albumName} ${artistName}`;
+			const response = await axios.get('https://api.spotify.com/v1/search',
+			{
+				params:
+				{
+					q: query,
+					type: 'album',
+					limit: 1
+				},
+				headers: 
+				{
+					'Authorization': `Bearer ${spotifyKey}`
+				}
+			});
+
+			spotifyId = response.data.albums.items[0].id;
+			var date = response.data.albums.items[0].release_date;
+
+			year = parseInt(date.substring(0, 4));
+		} 
+		catch (e) 
+		{
+			console.log(e);
+		}
+
+		album.Year = year;
+
+		var response = await axios.get(`https://api.spotify.com/v1/albums/${spotifyId}`,
+		{
+			headers:
+			{
+				'Authorization': `Bearer ${spotifyKey}`
+			}
+		});
+
+		// Adds spotify's input for tags, because why not, and some lastfm albums have no tags
+		album.Tags.push.apply(album.Tags, response.data.genres);
+
+		album.Tags = removeDuplicates(album.Tags);
+
+		// Checks for bad values
+		for (var i = 0; i < album.Tracks.length; i++)
+		{
+			// If broken, fix using Spotify
+			if (album.Length[i] == null)
+			{	
+				var milli = response.data.tracks.items[i].duration_ms;
+
+				album.Length[i] = Math.ceil(milli / 1000);
+			}
+		}
+
+		return album;
+	}
+
+	// Used for removing duplicate tags
+	function removeDuplicates(arr)
+	{
+		const uniqueStrings = [];
+		const lowerCaseMap = new Map(); // Keeps track of strings, ignoring case
+	
+		for (const str of arr)
+		{
+			const lowerCaseStr = str.toLowerCase();
+			if (!lowerCaseMap.has(lowerCaseStr))
+			{
+				uniqueStrings.push(str);
+				lowerCaseMap.set(lowerCaseStr, true);
+			}
+		}
+	
+		return uniqueStrings;
 	}
 
 }
