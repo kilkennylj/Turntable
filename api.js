@@ -568,6 +568,7 @@ exports.setApp = function (app, client)
 					method: 'ALBUM.getInfo',
 					artist: artist,
 					album: name,
+					lang: 'eng',
 					api_key: key,
 					format: 'json'
 				}
@@ -575,9 +576,13 @@ exports.setApp = function (app, client)
 
 			const album = response.data.album;
 
-			for(var i = 0; i < album.tags.tag.length; i++)
+			// Some albums have no tags? Don't know why
+			if (album.tags!= '')
 			{
-				tags[i] = album.tags.tag[i].name;
+				for(var i = 0; i < album.tags.tag.length; i++)
+				{
+					tags[i] = album.tags.tag[i].name;
+				}
 			}
 
 			for(var i = 0; i < album.tracks.track.length; i++)
@@ -688,29 +693,25 @@ exports.setApp = function (app, client)
 
 		album.Year = year;
 
-		var isError = false;
+		var response = await axios.get(`https://api.spotify.com/v1/albums/${spotifyId}`,
+		{
+			headers:
+			{
+				'Authorization': `Bearer ${spotifyKey}`
+			}
+		});
 
-		var response;
+		// Adds spotify's input for tags, because why not, and some lastfm albums have no tags
+		album.Tags.push.apply(album.Tags, response.data.genres);
+
+		album.Tags = removeDuplicates(album.Tags);
 
 		// Checks for bad values
 		for (var i = 0; i < album.Tracks.length; i++)
 		{
 			// If broken, fix using Spotify
 			if (album.Length[i] == null)
-			{
-				// Runs spotify API max of once
-				if (!isError)
-				{
-					response = await axios.get(`https://api.spotify.com/v1/albums/${spotifyId}`,
-					{
-						headers:
-						{
-							'Authorization': `Bearer ${spotifyKey}`
-						}
-					})
-					isError = true;
-				}
-				
+			{	
 				var milli = response.data.tracks.items[i].duration_ms;
 
 				album.Length[i] = Math.ceil(milli / 1000);
@@ -718,6 +719,25 @@ exports.setApp = function (app, client)
 		}
 
 		return album;
+	}
+
+	// Used for removing duplicate tags
+	function removeDuplicates(arr)
+	{
+		const uniqueStrings = [];
+		const lowerCaseMap = new Map(); // Keeps track of strings, ignoring case
+	
+		for (const str of arr)
+		{
+			const lowerCaseStr = str.toLowerCase();
+			if (!lowerCaseMap.has(lowerCaseStr))
+			{
+				uniqueStrings.push(str);
+				lowerCaseMap.set(lowerCaseStr, true);
+			}
+		}
+	
+		return uniqueStrings;
 	}
 
 }
