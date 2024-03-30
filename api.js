@@ -3,6 +3,9 @@ require('mongodb');
 
 const axios = require('axios')
 
+// Required for searching by _id 
+const { ObjectId } = require('mongodb');
+
 var spotifyKey;
 
 exports.setApp = function (app, client)
@@ -93,61 +96,6 @@ exports.setApp = function (app, client)
 		var ret = { results: _ret, error: error };
 		res.status(200).json(ret);
 	});
-
-	// Slow old way. Will delete later, just kept to avoid some confusion.
-/*	app.post('/api/addalbum', async (req, res, next) =>
-	{
-		// incoming : name, year, genres(array), rating, tracks(array), length(array), cover, jwtToken
-		// outgoing : error
-		var error = '';
-
-		const { name, year, genres, rating, tracks, length, cover, jwtToken } = req.body;
-
-		var token = require('./createJWT.js');
-
-		try
-		{
-			if (token.isExpired(jwtToken))
-			{
-				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
-				res.status(200).json(r);
-				return;
-			}
-		}
-
-		catch (e)
-		{
-			console.log(e.message);
-		}
-
-		const newAlbum = { Name: name, Year: year, Genres: genres, Rating: rating, Tracks: tracks, Length: length, Cover: cover };
-
-		try
-		{
-			const db = client.db("Turntable");
-			const result = db.collection("Albums").insertOne(newAlbum);
-		}
-		catch (e)
-		{
-			error = e.toString();
-		}
-
-		var refreshedToken = null;
-
-		try
-		{
-			refreshedToken = token.refresh(jwtToken);
-		}
-
-		catch (e)
-		{
-			console.log(e.message);
-		}
-
-		var ret = { error: error, jwtToken: refreshedToken };
-		res.status(200).json(ret);
-	});
-	*/
 
 	app.post('/api/addalbum', async (req, res, next) =>
 	{
@@ -313,16 +261,8 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		// Fix typo and clean string. Extra LastFM API call but it allows typos
-		var cleanSearch = (await albumSearch(key, search)).name;
-
-		cleanSearch = cleanSearch.replace(/"/g, '');
-
-		// Checks our MongoDB Database first.
-		const db = client.db("Turntable");
-		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
-
-		var ret;
+		var ret = await searchAlbum(key, search);
+		ret = { results: ret.results[0], error: ret.error, jwtToken: ret.jwtToken };
 
 		var refreshedToken = null;
 
@@ -336,18 +276,7 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		if (results.length > 0)
-		{
-			ret = {results: results[0], error:error, jwtToken: refreshedToken};
-		}
-
-		// If it isn't in our database, search LastFM
-		else
-		{
-			results = await addAlbum(key, cleanSearch);
-
-			ret = { results: results.album, jwtToken: refreshedToken }
-		}
+		ret = { ret, jwtToken: refreshedToken };
 
 		res.status(200).json(ret);
 	});
@@ -355,25 +284,103 @@ exports.setApp = function (app, client)
 	// NOT DONE
 	// NOTICE, THIS USES GET NOT POST!!
 	// This searches the database 
-	app.get('app/searchuseralbum', async(req, res) =>
+	app.get('/api/searchuseralbum', async(req, res) =>
 	{
 		// incoming: userId, search, jwtToken
-		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
-		/*
-			This one is slightly more tricky than other endpoints.
-			 - First DO NOT USE albumSearch. We don't use this because it was made for singular albums.
-			 - What we do is a simple search through our database. 
-				 - This is only one line so its not like it will be a big deal not using that function
-			 - Get ALL of the _id's from the albums.
-			 - Search the user's albums array now for all the values.
-			 - Return all albums that are found in that search.
+		// outgoing: albums {name, artist, year, tags, tracks, length, cover }, error, jwtToken
 
-			Make this a function so I can call it from updateUserRating
+		const { userId, search, jwtToken } = req.body;
 
-			REMEMBER! When calling an ASYNC function write await before the call.
-			var results = await searchArtist(search);
-		*/
-		res.status(500).json( {error: "Has not been completed yet." } );
+		var error = '';
+
+		var token = require('./createJWT.js');
+
+		require('dotenv').config();
+		const key = process.env.LASTFM_API_KEY;
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		var results = [];
+
+		// Quick populate
+		if (search === "")
+		{
+			const db = client.db("Turntable");
+			var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+			var albumIds = user.Albums;
+
+			for (var i = 0; i < albumIds.length; i++)
+			{
+				results[i] = await db.collection("Albums").findOne({ _id: new ObjectId(albumIds[i])});
+			}
+		}
+
+		else
+		{
+			// We don't use searchAlbum because we don't want auto correct here.
+			const db = client.db("Turntable");
+			var searchRes = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();	
+
+			var albumIds = [];
+
+			for (var i = 0; i < searchRes.length; i++)
+			{
+				albumIds[i] = searchRes[i]._id;
+			}
+
+			try
+			{
+				const db = client.db("Turntable");
+				var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+				// O(n^2) but what can we really do instead.
+				// If we delete the index that the found album was at, 
+				// we would have to calculate where the corresponding album is when the next album is found
+				for (var i = 0; i < user.Albums.length; i++)
+				{
+					for (var j = 0; j < albumIds.length; j++)
+					{
+						if (user.Albums[i].equals(albumIds[j]))
+						{
+							results.push(searchRes[j]);
+						}
+					}
+				}
+			}
+
+			catch(e)
+			{
+				console.error(e);
+			}
+		}
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		res.status(200).json( { albums: results, error: error, jwtToken: refreshedToken } );
 	});
 
 	async function searchArtist(search)
@@ -438,7 +445,7 @@ exports.setApp = function (app, client)
 
 		else
 		{
-			var newAlbum = await albumInfoSearch(key, search);
+			var newAlbum = await lfmAlbumInfoSearch(key, search);
 
 			// Checks again with new name, gets edge cases.
 			try
@@ -501,10 +508,39 @@ exports.setApp = function (app, client)
 		}
 	}
 
+	async function searchAlbum(key, search)
+	{
+		var error = '';
+
+		// Fix typo and clean string. Extra LastFM API call but it allows typos
+		var cleanSearch = (await lfmAlbumSearch(key, search)).name;
+		
+		cleanSearch = cleanSearch.replace(/"/g, '');
+
+		// Checks our MongoDB Database first.
+		const db = client.db("Turntable");
+		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
+
+		console.log(results);
+
+		if (results.length > 0)
+		{
+			return({results: results, error:error});
+		}
+
+		// If it isn't in our database, search LastFM
+		else
+		{
+			results = await addAlbum(key, cleanSearch);
+
+			return({ results: results.album, error: error });
+		}
+	}
+
 	// LastFM integration below here. Flipped function naming convention to show they are different.
 
 	// This is the function that finds an album based off of album title text
-	async function albumSearch(key, search)
+	async function lfmAlbumSearch(key, search)
 	{	
 		var error = '';
 
@@ -544,9 +580,9 @@ exports.setApp = function (app, client)
 	}
 
 	// This is the function that gets the info that goes into the database and shows off a search.
-	async function albumInfoSearch(key, search)
+	async function lfmAlbumInfoSearch(key, search)
 	{
-		var searchRes = await albumSearch(key, search);
+		var searchRes = await lfmAlbumSearch(key, search);
 
 		var name = searchRes.name;
 		var artist = searchRes.artist;
