@@ -1,0 +1,37 @@
+.carousel-card {
+    width: 350px; /* Adjust width as needed */
+    height: 350px; /* Adjust height as needed */
+  }
+
+
+.back {
+    width: 350px;
+    height: 350px;
+    align-self: center;
+    background-color: blanchedalmond;
+ }
+
+.carousel_img
+{
+    width: 350px;
+    height: 350px;
+    align-self: center;
+}
+  
+
+.carousel_thumbnail{
+    width: 40px;
+    height: 40px;
+}
+
+.tracklist_box {
+    position: fixed;
+    bottom: 50px; /* Adjust distance from bottom as needed */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%);
+    background-color: blanchedalmond;
+    padding: 20px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  }
