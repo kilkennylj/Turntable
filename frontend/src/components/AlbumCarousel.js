@@ -22,7 +22,7 @@ function AlbumCarousel() {
 
   const renderCardContent = (index) => {
     if (index === flippedIndex) {
-      // If the card is flipped, render the back face content (album information)
+      // If the card is flipped, render the back face content
       return (
         <div className="back">
           <h3>Album Title</h3>
@@ -31,7 +31,7 @@ function AlbumCarousel() {
         </div>
       );
     } else {
-      // Otherwise, render the front face content (album cover)
+      // Otherwise, render the front face content
       return (
         <div className="front">
           <img className="carousel_img" src={`/assets/img/test_${index + 1}.jpg`} alt="Album cover" />
@@ -62,18 +62,16 @@ function AlbumCarousel() {
       <Slider {...settings}>
         {[1, 2, 3, 4].map((index) => (
           <div key={index} onClick={() => handleCardClick(index - 1)}>
-            {renderCardContent(index - 1)}
-          </div>
+            {renderCardContent(index - 1)} 
+          </div> // Here goes API function to fill carousel
         ))}
       </Slider>
       {showTracklist && (
         <div className="tracklist_box">
-          {/* Tracklist content */}
           <h2>Tracklist</h2>
           <ul>
             <li>Track 1</li>
             <li>Track 2</li>
-            {/* Add more tracks as needed */}
           </ul>
         </div>
       )}
