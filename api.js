@@ -262,7 +262,6 @@ exports.setApp = function (app, client)
 		}
 
 		var ret = await searchAlbum(key, search);
-		ret = { results: ret.results[0], error: ret.error, jwtToken: ret.jwtToken };
 
 		var refreshedToken = null;
 
@@ -276,7 +275,14 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
-		ret = { ret, jwtToken: refreshedToken };
+		if (Array.isArray(ret.results))
+		{
+			ret = { results: ret.results[0], error: ret.error, jwtToken: refreshedToken };
+		}
+		else
+		{
+			ret = { results: ret.results, error: ret.error, jwtToken: refreshedToken };
+		}
 
 		res.status(200).json(ret);
 	});
@@ -504,7 +510,7 @@ exports.setApp = function (app, client)
 				await updateArtist(searchRes[0]._id, newAlbum._id);
 			}
 			// return album error or just one
-			return ({album: newAlbum, error: error});
+			return ({_id: newAlbum._id, album: newAlbum, error: error});
 		}
 	}
 
@@ -521,8 +527,6 @@ exports.setApp = function (app, client)
 		const db = client.db("Turntable");
 		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
 
-		console.log(results);
-
 		if (results.length > 0)
 		{
 			return({results: results, error:error});
@@ -533,7 +537,7 @@ exports.setApp = function (app, client)
 		{
 			results = await addAlbum(key, cleanSearch);
 
-			return({ results: results.album, error: error });
+			return({ results: results, error: error });
 		}
 	}
 
@@ -752,7 +756,11 @@ exports.setApp = function (app, client)
 
 				album.Length[i] = Math.ceil(milli / 1000);
 			}
+
+			album.Tracks[i] = titleCleaner(album.Tracks[i]);
 		}
+
+		album.Name = titleCleaner(album.Name);
 
 		return album;
 	}
@@ -774,6 +782,15 @@ exports.setApp = function (app, client)
 		}
 	
 		return uniqueStrings;
+	}
+
+	function titleCleaner(title)
+	{
+		// Removes - Remaster, - 0-9*, - Single, - Album, (0-9*), (Remaster), (Deluxe), so on, and the same thing but with [] and everything after all of those.
+		const pattern = /(-\s*(?:\d+|Remaster|Single|Album)\s*|\s*([\(\[](?:\d+|Remastered|Deluxe|Parental Advisory|Explicit|Album Version)[^\)\]]*[\)\]]))\s*$/;
+
+		// Replace the matched pattern at the end of the string with an empty string
+		return title.replace(pattern, '');
 	}
 
 }
