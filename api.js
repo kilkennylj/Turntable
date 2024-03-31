@@ -281,7 +281,7 @@ exports.setApp = function (app, client)
 		}
 		else
 		{
-			ret = { results: ret.results, error: ret.error, jwtToken: refreshedToken };
+			ret = { results: ret.results.album, error: ret.error, jwtToken: refreshedToken };
 		}
 
 		res.status(200).json(ret);
@@ -521,7 +521,7 @@ exports.setApp = function (app, client)
 		// Fix typo and clean string. Extra LastFM API call but it allows typos
 		var cleanSearch = (await lfmAlbumSearch(key, search)).name;
 		
-		cleanSearch = cleanSearch.replace(/"/g, '');
+		cleanSearch = titleCleaner(cleanSearch);
 
 		// Checks our MongoDB Database first.
 		const db = client.db("Turntable");
@@ -787,10 +787,10 @@ exports.setApp = function (app, client)
 	function titleCleaner(title)
 	{
 		// Removes - Remaster, - 0-9*, - Single, - Album, (0-9*), (Remaster), (Deluxe), so on, and the same thing but with [] and everything after all of those.
-		const pattern = /(-\s*(?:\d+|Remaster|Single|Album)\s*|\s*([\(\[](?:\d+|Remastered|Deluxe|Parental Advisory|Explicit|Album Version)[^\)\]]*[\)\]]))\s*$/;
+		const pattern = /(?:\((?:Remastered|Deluxe|Parental Advisory|Explicit|Album Version|Single Version|\d+)|\[(?:Remastered|Deluxe|Parental Advisory|Explicit|Album Version|Single Version|\d+)|-\s*(?:Remaster|Album|Single|\d+))\s*.*$/i;
 
 		// Replace the matched pattern at the end of the string with an empty string
-		return title.replace(pattern, '');
+		return title.replace(pattern, '').trim();
 	}
 
 }
