@@ -27,4 +27,9 @@
 5. **Running on a device**:
    - **Physical device**: Install the Expo Go app from the App Store (iOS) or Google Play Store (Android). Then, scan the QR code displayed in the terminal or Expo DevTools using the Expo Go app on your device.
 
+6. **Navigation on App.js**:
+    ```
+    npm install @react-navigation/stack
+    ```
+
 These commands should work seamlessly with npm. Ensure you have `Node.js` installed, as npm comes bundled with Node.js.
