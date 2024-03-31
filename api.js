@@ -153,22 +153,77 @@ exports.setApp = function (app, client)
 		}
 	});
 
-	// NOT DONE
 	app.post('/api/adduseralbum', async (req, res, next) =>
 	{
 		// incoming: userId, name, jwtToken
 		// outgoing: error, jwtToken
-		/*
-			This one is simple because of the functions at the bottom.
-			Use SearchAlbum, grab _id, add it to the user's album array, add (int)-1 to rating's array.
-			You will need to grab the LastFM key from the .env here.
-			
-			REMEMBER! When calling an ASYNC function write await before the call.
-			var results = await searchArtist(search);
+		var error = '';
+		const { userId, name, jwtToken } = req.body;
 
-			Delete this block comment once completed
-		*/
-		res.status(500).json( {error: "Has not been completed yet." } );
+		require('dotenv').config();
+		const key = process.env.LASTFM_API_KEY;
+
+		var token = require('./createJWT.js');
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		try
+		{
+			const db = client.db("Turntable");
+			var results = await db.collection('Albums').find({Name: {$regex: name+'.*', $options:'i'}}).toArray();
+			var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+			var albumId;
+
+			// In Database
+			if (results.length > 0)
+			{
+				albumId = results[0]._id;
+			}
+
+			// Not in database
+			else
+			{
+				albumId = await searchAlbum(key, name).album._id;
+			}
+			
+			await db.collection('Users').updateOne(
+				{ _id: new ObjectId(userId) },
+				{ $push: { Albums: albumId, Ratings: -1 } }
+			  );
+
+			var refreshedToken = null;
+
+			try
+			{
+				refreshedToken = token.refresh(jwtToken);
+			}
+
+			catch (e)
+			{
+				console.log(e.message);
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		res.status(200).json( {error: error, jwtToken: refreshedToken } );
 	});
 
 	app.post('/api/addartist', async (req, res, next) => 
@@ -275,10 +330,13 @@ exports.setApp = function (app, client)
 			console.log(e.message);
 		}
 
+		// Was in database beforehand
 		if (Array.isArray(ret.results))
 		{
 			ret = { results: ret.results[0], error: ret.error, jwtToken: refreshedToken };
 		}
+
+		// Wasn't in database beforehand
 		else
 		{
 			ret = { results: ret.results.album, error: ret.error, jwtToken: refreshedToken };
@@ -287,7 +345,6 @@ exports.setApp = function (app, client)
 		res.status(200).json(ret);
 	});
 
-	// NOT DONE
 	// NOTICE, THIS USES GET NOT POST!!
 	// This searches the database 
 	app.get('/api/searchuseralbum', async(req, res) =>
@@ -527,12 +584,13 @@ exports.setApp = function (app, client)
 		const db = client.db("Turntable");
 		var results = await db.collection('Albums').find({Name: {$regex: cleanSearch+'.*', $options:'i'}}).toArray();
 
+		// Returns array
 		if (results.length > 0)
 		{
 			return({results: results, error:error});
 		}
 
-		// If it isn't in our database, search LastFM
+		// If it isn't in our database, search LastFM, returns single album
 		else
 		{
 			results = await addAlbum(key, cleanSearch);
