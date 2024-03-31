@@ -197,7 +197,7 @@ exports.setApp = function (app, client)
 			// Not in database
 			else
 			{
-				albumId = searchAlbum(key, name).album._id;
+				albumId = await searchAlbum(key, name).album._id;
 			}
 			
 			await db.collection('Users').updateOne(
