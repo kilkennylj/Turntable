@@ -281,7 +281,7 @@ exports.setApp = function (app, client)
 		}
 		else
 		{
-			ret = { results: ret.results, error: ret.error, jwtToken: refreshedToken };
+			ret = { results: ret.results.album, error: ret.error, jwtToken: refreshedToken };
 		}
 
 		res.status(200).json(ret);
