@@ -1,80 +1,137 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, FlatList, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Image, FlatList, ScrollView, TouchableOpacity, Button } from 'react-native';
 
-const AlbumCover = ({ album }) => {
-  const title = album ? album.title : 'Album 1';
+const LandingPage = ({ navigation }) => {
+  // const { jwt } = route.params;
 
-  return (
-    <View style={styles.albumContainer}>
-      <Text style={styles.albumTitle}>{title}</Text>
-      <Image source={require('../assets/album1.png')} style={styles.albumCoverImage} />
-    </View>
+  const [name, setName] = useState('');
+  const [year, setYear] = useState('');
+  const [genres, setGenres] = useState([]);
+  const [rating, setRating] = useState('');
+  const [tracks, setTracks] = useState([]);
+  const [length, setLength] = useState([]);
+  const [cover, setCover] = useState('');
+  const [albums, setAlbums] = useState([]);
+  const [message, setMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleAddAlbum = () => {
+    const newAlbum = { name, year, genres, rating, tracks, length, cover };
+    setAlbums([...albums, newAlbum]);
+    clearInputFields();
+  };
+
+  const clearInputFields = () => {
+    setName('');
+    setYear('');
+    setGenres([]);
+    setRating('');
+    setTracks([]);
+    setLength([]);
+    setCover('');
+  };
+
+  const searchAlbum = async () => {
+    console.log("Trying to send data");
+    try {
+      const data = {
+        userId: '65d91cfbf69237517bfc711',
+        search: searchQuery, // Using search query
+        jwtToken: jwt,
+      };
+
+      const response = await fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/searchuseralbum', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, text: ${text}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Response:', responseData);
+      // Update albums state with search results
+      setAlbums(responseData.albums);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  const addAlbum = () => {
+    const data = { name, year, genres, rating, tracks, length, cover };
+
+    fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/addalbum', { // Corrected endpoint URL
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(res => {
+        if (res.error && res.error.length > 0) {
+          setMessage("API Error: " + res.error);
+        } else {
+          setMessage('Album has been added');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setMessage('Error adding album. Please try again.');
+      });
+  };
+
+  const handleAlbumPress = (album) => {
+    setName(album.name);
+    setYear(album.year);
+    setGenres(album.genres);
+    setRating(album.rating);
+    setTracks(album.tracks);
+    setLength(album.length);
+    setCover(album.cover);
+    console.log('Clicked on album:', album);
+  };
+
+  const renderAlbumCover = ({ item }) => (
+    <TouchableOpacity onPress={() => handleAlbumPress(item)}>
+      <View style={styles.albumContainer}>
+        <Text style={styles.albumTitle}>{item.name}</Text>
+        <Image source={{ uri: item.cover }} style={styles.albumCoverImage} />
+      </View>
+    </TouchableOpacity>
   );
-};
-
-const LandingPage = () => {
-  const albums = [
-    { id: 1, title: 'Album 1' },
-    { id: 2, title: 'Album 2' },
-    { id: 3, title: 'Album 3' },
-    { id: 4, title: 'Album 4' },
-    { id: 5, title: 'Album 5' },
-    { id: 6, title: 'Album 6' },
-    { id: 7, title: 'Album 7' },
-    { id: 8, title: 'Album 8' },
-    { id: 9, title: 'Album 9' },
-    { id: 10, title: 'Album 10' },
-    { id: 11, title: 'Album 1' },
-    { id: 12, title: 'Album 2' },
-    { id: 13, title: 'Album 3' },
-    { id: 14, title: 'Album 4' },
-    { id: 15, title: 'Album 5' },
-    { id: 16, title: 'Album 6' },
-    { id: 17, title: 'Album 7' },
-    { id: 18, title: 'Album 8' },
-    { id: 19, title: 'Album 9' },
-  ];
-
-  const renderAlbumCover = ({ item }) => <AlbumCover album={item} />;
 
   return (
     <View style={styles.container}>
       <FlatList
         data={albums}
         renderItem={renderAlbumCover}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => index.toString()}
         horizontal
         contentContainerStyle={styles.scrollViewContainer}
       />
       <ScrollView style={styles.textContainer}>
-        <Text>
-          {`Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit.consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit ametconsectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit ametconsectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit ametconsectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit ametconsectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amet
-          interdum purus consectetur. Sed feugiat metus id erat condimentum mattis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla lacinia ipsum nec diam dignissim, sit amett`}
-        </Text>
+        <Text>Name: {name}</Text>
+        <Text>Year: {year}</Text>
+        <Text>Genres: {genres.join(', ')}</Text>
+        <Text>Rating: {rating}</Text>
+        <Text>Tracks: {tracks.join(', ')}</Text>
+        <Text>Length: {length.join(', ')}</Text>
+        <Text>Cover: {cover}</Text>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search albums"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Button title="Search" onPress={searchAlbum} />
+          <Button title="Add" onPress={handleAddAlbum} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -85,6 +142,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginRight: 10,
+    paddingHorizontal: 10,
+  },
   scrollViewContainer: {
     paddingHorizontal: 5,
     paddingVertical: 5,
@@ -92,23 +165,23 @@ const styles = StyleSheet.create({
   albumContainer: {
     marginHorizontal: 10,
     alignItems: 'center',
+    backgroundColor: '#B3C8CF',
+    borderRadius: 10,
+    padding: 10,
   },
   albumTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 1,
+    marginBottom: 5,
   },
   albumCoverImage: {
-    width: 300,
-    height: 300,
+    width: 500,
+    height: 500,
     resizeMode: 'cover',
   },
   textContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
-  },
-  textContent: {
-    fontSize: 16,
   },
 });
 

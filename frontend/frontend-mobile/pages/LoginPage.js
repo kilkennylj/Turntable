@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { useFonts } from 'expo-font';
-
-const LoginPage = () => {
+//import { useHistory } from 'react-router-dom';
+var jwt;
+const LoginPage = ({navigation}) => {
   console.log('App started');
 
   const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ const LoginPage = () => {
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-
+  const [jwt, setJwt] = useState('');
   const [loaded] = useFonts({
     Hendangan: require('../assets/fonts/hendangan/Hendangan.ttf'),
   });
@@ -22,12 +23,12 @@ const LoginPage = () => {
 
   const handleLogin = () => {
     console.log('Logging in with:', email, password);
-
+  
     const data = {
       login: email,
       password: password,
     };
-
+  
     fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/login', {
       method: 'POST',
       headers: {
@@ -45,7 +46,10 @@ const LoginPage = () => {
         if (data.error) {
           alert(data.error);
         } else {
-          // Redirect to landing page upon successful login
+          console.log('JWT Token:', data.accessToken);
+  
+          // Pass the JWT token to the LandingPage component
+          navigation.navigate('LandingPage', { jwt: data.accessToken });
         }
       })
       .catch((error) => {
