@@ -3,7 +3,7 @@ require('mongodb');
 
 const axios = require('axios')
 
-// Required for searching by _id 
+// Required for searching by _id
 const { ObjectId } = require('mongodb');
 
 var spotifyKey;
@@ -127,7 +127,7 @@ exports.setApp = function (app, client)
 		}
 
 		var ret = await addAlbum(key, search);
-		
+
 		if (ret.error.length > 0)
 		{
 			res.status(500).json( { error: ret.error } );
@@ -199,7 +199,7 @@ exports.setApp = function (app, client)
 			{
 				albumId = await searchAlbum(key, name).album._id;
 			}
-			
+
 			await db.collection('Users').updateOne(
 				{ _id: new ObjectId(userId) },
 				{ $push: { Albums: albumId, Ratings: -1 } }
@@ -225,8 +225,53 @@ exports.setApp = function (app, client)
 
 		res.status(200).json( {error: error, jwtToken: refreshedToken } );
 	});
+	app.post('/api/updateuserrating', async (req, res, next) => {
+	  // incoming: userId, search, jwtToken
 
-	app.post('/api/addartist', async (req, res, next) => 
+	  const { userId, search, jwtToken } = req.body;
+
+	  // Function to search for the user album
+	  async function searchUserAlbum(userId, search) {
+	    const db = client.db("Turntable");
+	    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+	    // Find the index of the album in the user's collection
+	    const albumIndex = user.Albums.findIndex(album => album.Name.toLowerCase() === search.toLowerCase());
+	    return albumIndex;
+	  }
+
+	  try {
+	    // Check if JWT token is expired
+	    if (token.isExpired(jwtToken)) {
+	      return res.status(401).json({ error: 'The JWT is no longer valid' });
+	    }
+
+	    // Search for the album
+	    const albumIndex = await searchUserAlbum(userId, search);
+
+	    // If album not found, return error
+	    if (albumIndex === -1) {
+	      return res.status(404).json({ error: 'Album not found for the user' });
+	    }
+
+	    // Update user rating
+	    const db = client.db("Turntable");
+	    await db.collection('Users').updateOne(
+	      { _id: new ObjectId(userId), "Albums.Name": search },
+	      { $set: { "Albums.$.Rating": req.body.rating } }
+	    );
+
+	    // Refresh JWT token
+	    const refreshedToken = token.refresh(jwtToken);
+
+	    // Send response
+	    res.status(200).json({ error: null, jwtToken: refreshedToken });
+	  } catch (error) {
+	    console.error(error);
+	    res.status(500).json({ error: 'Internal server error' });
+	  }
+	});
+	app.post('/api/addartist', async (req, res, next) =>
 	{
 		// incoming : name, albums(array), jwtToken
 		// outgoing : error, jwtToken
@@ -346,7 +391,7 @@ exports.setApp = function (app, client)
 	});
 
 	// NOTICE, THIS USES GET NOT POST!!
-	// This searches the database 
+	// This searches the database
 	app.get('/api/searchuseralbum', async(req, res) =>
 	{
 		// incoming: userId, search, jwtToken
@@ -396,7 +441,7 @@ exports.setApp = function (app, client)
 		{
 			// We don't use searchAlbum because we don't want auto correct here.
 			const db = client.db("Turntable");
-			var searchRes = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();	
+			var searchRes = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
 
 			var albumIds = [];
 
@@ -411,7 +456,7 @@ exports.setApp = function (app, client)
 				var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
 
 				// O(n^2) but what can we really do instead.
-				// If we delete the index that the found album was at, 
+				// If we delete the index that the found album was at,
 				// we would have to calculate where the corresponding album is when the next album is found
 				for (var i = 0; i < user.Albums.length; i++)
 				{
@@ -495,7 +540,7 @@ exports.setApp = function (app, client)
 			// Checks if the album is already there
 			var dbCheck = await db.collection('Albums').find({Name: {$regex: search+'.*', $options:'i'}}).toArray();
 		}
-		
+
 		catch(e)
 		{
 			console.log(e.message);
@@ -519,22 +564,22 @@ exports.setApp = function (app, client)
 				newAlbum.Name = newAlbum.Name.replace(/"/g, '');
 
 				// Checks if the album is already there
-				var dbCheck = await db.collection('Albums').find({ 
-					Name: 
-					{ 
-						$regex: newAlbum.Name + '.*', 
+				var dbCheck = await db.collection('Albums').find({
+					Name:
+					{
+						$regex: newAlbum.Name + '.*',
 						$options: 'i'
 					}
 				}).toArray();
 			}
-		
+
 			catch(e)
 			{
 				console.log(e.message);
 			}
 
 			if (dbCheck.length > 0)
-			{	
+			{
 				return( { error: "Album already in database" } );
 			}
 
@@ -577,7 +622,7 @@ exports.setApp = function (app, client)
 
 		// Fix typo and clean string. Extra LastFM API call but it allows typos
 		var cleanSearch = (await lfmAlbumSearch(key, search)).name;
-		
+
 		cleanSearch = titleCleaner(cleanSearch);
 
 		// Checks our MongoDB Database first.
@@ -603,7 +648,7 @@ exports.setApp = function (app, client)
 
 	// This is the function that finds an album based off of album title text
 	async function lfmAlbumSearch(key, search)
-	{	
+	{
 		var error = '';
 
 		try
@@ -629,7 +674,7 @@ exports.setApp = function (app, client)
 			const cover = album.image[album.image.length - 1]['#text'];
 
 			const results = {name : name, artist: artist, cover : cover, error: error}
-			
+
 			// Send the response data back to the client
 			return(results);
 		}
@@ -649,7 +694,7 @@ exports.setApp = function (app, client)
 		var name = searchRes.name;
 		var artist = searchRes.artist;
 		var cover = searchRes.cover;
-		
+
 		var year = 0; // Need a workaround, documentation was wrong.
 		var tags = [];
 		// var rating = 5; Only re add if we want a global rating for each album
@@ -706,7 +751,7 @@ exports.setApp = function (app, client)
 	{
 		const dotenv = require('dotenv');
 		const axios = require('axios');
-		
+
 		// Generates a spotify api key. They expire every hour. Very annoying
 		spotifyKey = process.env.SPOTIFY_API_KEY;
 
@@ -721,7 +766,7 @@ exports.setApp = function (app, client)
 					type: 'album',
 					limit: 1
 				},
-				headers: 
+				headers:
 				{
 					'Authorization': `Bearer ${spotifyKey}`
 				}
@@ -740,7 +785,7 @@ exports.setApp = function (app, client)
 				{
 					grant_type: 'client_credentials'
 				},
-				auth: 
+				auth:
 				{
 					username: clientId,
 					password: clientSecret
@@ -760,7 +805,7 @@ exports.setApp = function (app, client)
 		const artistName = album.Artist;
 		var spotifyId;
 		var year;
-		
+
 		// Gets Spotify ID and year. Needed for every album
 		try
 		{
@@ -773,7 +818,7 @@ exports.setApp = function (app, client)
 					type: 'album',
 					limit: 1
 				},
-				headers: 
+				headers:
 				{
 					'Authorization': `Bearer ${spotifyKey}`
 				}
@@ -783,8 +828,8 @@ exports.setApp = function (app, client)
 			var date = response.data.albums.items[0].release_date;
 
 			year = parseInt(date.substring(0, 4));
-		} 
-		catch (e) 
+		}
+		catch (e)
 		{
 			console.log(e);
 		}
@@ -809,7 +854,7 @@ exports.setApp = function (app, client)
 		{
 			// If broken, fix using Spotify
 			if (album.Length[i] == null)
-			{	
+			{
 				var milli = response.data.tracks.items[i].duration_ms;
 
 				album.Length[i] = Math.ceil(milli / 1000);
@@ -828,7 +873,7 @@ exports.setApp = function (app, client)
 	{
 		const uniqueStrings = [];
 		const lowerCaseMap = new Map(); // Keeps track of strings, ignoring case
-	
+
 		for (const str of arr)
 		{
 			const lowerCaseStr = str.toLowerCase();
@@ -838,7 +883,7 @@ exports.setApp = function (app, client)
 				lowerCaseMap.set(lowerCaseStr, true);
 			}
 		}
-	
+
 		return uniqueStrings;
 	}
 
