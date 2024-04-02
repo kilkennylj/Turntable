@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import "../styles/AlbumCarousel.css";
+import "../../styles/AlbumCarousel.css";
 
 function AlbumCarousel() {
   const [flippedIndex, setFlippedIndex] = useState(-1); // Keep track of the flipped card index
   const [showTracklist, setShowTracklist] = useState(false); // State to manage tracklist visibility
+  const thisBack = useRef(null);
 
   const handleCardClick = (index) => {
     if (index === flippedIndex) {
@@ -25,9 +26,14 @@ function AlbumCarousel() {
       // If the card is flipped, render the back face content
       return (
         <div className="back">
-          <h3>Album Title</h3>
-          <p>Artist Name</p>
-          <p>Release Date</p>
+          <h3 className="title">Album Title</h3>
+          <p className="artist">Artist Name</p>
+          <p className="release">Release Date</p>
+          <p className="tags">Tags</p>
+          <p className="review">Review</p>
+          <div className="delete_div">
+            <button className="delete_button">X</button>
+          </div>
         </div> // Gather information from album object
       );
     } else {
@@ -59,6 +65,7 @@ function AlbumCarousel() {
 
   return (
     <div className="slider_container">
+      <div className="carousel_box">
       <Slider {...settings}>
         {[1, 2, 3, 4].map((index) => (
           <div key={index} onClick={() => handleCardClick(index - 1)}>
@@ -66,6 +73,7 @@ function AlbumCarousel() {
           </div> // Here goes API function to fill carousel
         ))}
       </Slider>
+      </div>
       {showTracklist && (
         <div className="tracklist_box">
           <h2>Tracklist</h2>
