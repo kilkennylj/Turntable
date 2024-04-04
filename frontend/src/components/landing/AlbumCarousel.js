@@ -36,7 +36,7 @@ function AlbumCarousel() {
           <p className="tags">{album.albumTags.join(", ")}</p>
           {/* Review solution goes here */}
           <div className="delete_div">
-            <button className="delete_button" onClick={() => handleDelete(album._id)}>X</button>
+            <button className="delete_button" onClick={() => handleDelete()}>X</button>
           </div>
         </div>
       );

@@ -1,6 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Album, Tracklist, Track } from "../models/Album";
 
+const getRandomPlaceholderCover = () => {
+    // Generate a random number between 0 and 1
+    const randomNumber = Math.random();
+  
+    // Define the probabilities for each placeholder cover image
+    const probabilities = [
+        { cover: "/assets/img/placeholder/placeholder_1.jpg", chance: 0.05 },
+        { cover: "/assets/img/placeholder/placeholder_2.jpg", chance: 0.2 },
+        { cover: "/assets/img/placeholder/placeholder_3.jpg", chance: 0.45 },
+        { cover: "/assets/img/placeholder/placeholder_4.jpg", chance: 0.3 }
+      ];
+  
+    // Iterate through the probabilities
+    for (const probability of probabilities) {
+      // If the random number falls within the probability range, select the cover
+      if (randomNumber < probability.chance) {
+        return probability.cover;
+      }
+    }
+  
+    // If no cover is selected, return the last cover in the list (fallback)
+    return probabilities[probabilities.length - 1].cover;
+  };
+  
+
 function AlbumFunctions() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -32,7 +57,21 @@ function AlbumFunctions() {
 
                 const data = await response.json();
 
-                // Process the albums from API response
+                let formattedAlbums = [];
+
+                if (data.albums.length === 0) {
+                    // If user has no albums, create a template album
+                    const templateAlbum = new Album(
+                      "Welcome to Turntable!",
+                      "To get started, add one album by using",
+                      "the search bar above.",
+                      ["You can use this website to save albums you have listened to and review them."],
+                      ["Here is where your tracklist would go! ... If you had albums ..."],
+                      getRandomPlaceholderCover
+                    );
+              
+                    formattedAlbums = [templateAlbum];
+                  } else {
                 const formattedAlbums = data.albums.map(albumData => {
                     // Create tracks for the album
                     const tracks = albumData.Tracks.map((trackName, index) => {
@@ -52,7 +91,7 @@ function AlbumFunctions() {
                         albumData.Cover
                     );
                 });
-
+            }
                 // Set the albums in state
                 setAlbums(formattedAlbums);
             } catch (error) {
