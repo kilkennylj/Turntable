@@ -255,7 +255,7 @@ app.post('/api/updateuserrating', async (req, res, next) => {
 
   try {
     // Check if JWT token is expired
-    // Replace `token.isExpired()` with your actual implementation for token validation
+    // Replace `token.isExpired()` with actual implementation for token validation later
     if (token.isExpired(jwtToken)) {
       return res.status(401).json({ error: 'The JWT is no longer valid' });
     }
@@ -276,7 +276,7 @@ app.post('/api/updateuserrating', async (req, res, next) => {
     );
 
     // Refresh JWT token
-    // Replace `token.refresh()` with your actual implementation for token refresh
+    // Replace `token.refresh()` with actual implementation for token refresh later
     const refreshedToken = token.refresh(jwtToken);
 
     // Send response
