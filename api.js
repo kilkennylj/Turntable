@@ -225,67 +225,71 @@ exports.setApp = function (app, client)
 
 		res.status(200).json( {error: error, jwtToken: refreshedToken } );
 	});
-	/**
- * Update user rating for an album.
- *
- * Endpoint: POST /api/updateuserrating
- *
- * @param {string} userId - The ID of the user.
- * @param {string} search - The name of the album to search for.
- * @param {string} jwtToken - The JWT token for authentication.
- * @param {number} rating - The new rating for the album.
- *
- * @returns {object} Response object with error and refreshed JWT token.
- */
+	app.post('/api/updateuserrating', async (req, res, next) => {
+	  // incoming: userId, name, rating, jwtToken
+	  // outgoing: error, jwtToken
 
-app.post('/api/updateuserrating', async (req, res, next) => {
-  // incoming: userId, search, jwtToken, rating
+	  const { userId, name, rating, jwtToken } = req.body;
 
-  const { userId, search, jwtToken, rating } = req.body;
+	  // Function to search for the user album
+	  async function searchUserAlbum(userId, name) {
+	    const db = client.db("Turntable");
+	    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
 
-  // Function to search for the user album
-  async function searchUserAlbum(userId, search) {
-    const db = client.db("Turntable");
-    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+		const userAlbums = user.Albums;
 
-    // Find the index of the album in the user's collection
-    const albumIndex = user.Albums.findIndex(album => album.Name.toLowerCase() === search.toLowerCase());
-    return albumIndex;
-  }
+		const searchRes = await db.collection('Albums').findOne( { Name: {$regex: name, $options:'i'}} );
 
-  try {
-    // Check if JWT token is expired
-    // Replace `token.isExpired()` with actual implementation for token validation later
-    if (token.isExpired(jwtToken)) {
-      return res.status(401).json({ error: 'The JWT is no longer valid' });
-    }
+		if (searchRes === null)
+			return -1;
 
-    // Search for the album
-    const albumIndex = await searchUserAlbum(userId, search);
+	    // Find the index of the album in the user's collection
+		for (var i = 0; i < userAlbums.length; i++)
+		{
+			if (userAlbums[i].toString() === searchRes._id.toString())
+			{
+				return i;
+			}
+		}
 
-    // If album not found, return error
-    if (albumIndex === -1) {
-      return res.status(404).json({ error: 'Album not found for the user' });
-    }
+	    return -1;
+	  }
 
-    // Update user rating
-    const db = client.db("Turntable");
-    await db.collection('Users').updateOne(
-      { _id: new ObjectId(userId), "Albums.Name": search },
-      { $set: { "Albums.$.Rating": rating } } // Use the provided `rating` from the request body
-    );
+	  var error = '';
 
-    // Refresh JWT token
-    // Replace `token.refresh()` with actual implementation for token refresh later
-    const refreshedToken = token.refresh(jwtToken);
+	  var token = require('./createJWT.js');
 
-    // Send response
-    res.status(200).json({ error: null, jwtToken: refreshedToken });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+	  try {
+	    // Check if JWT token is expired
+	    if (token.isExpired(jwtToken)) {
+	      return res.status(401).json({ error: 'The JWT is no longer valid' });
+	    }
+
+	    // Search for the album
+	    const albumIndex = await searchUserAlbum(userId, name);
+
+	    // If album not found, return error
+	    if (albumIndex === -1) {
+	      return res.status(404).json({ error: 'Album not found for the user' });
+	    }
+
+	    // Update user rating
+	    const db = client.db("Turntable");
+	    await db.collection('Users').updateOne(
+	      { _id: new ObjectId(userId) },
+	      { $set: { [`Ratings.${ albumIndex }`]: rating } }
+	    );
+
+	    // Refresh JWT token
+	    const refreshedToken = token.refresh(jwtToken);
+
+	    // Send response
+	    res.status(200).json({ error: error, jwtToken: refreshedToken });
+	  } catch (error) {
+	    console.error(error);
+	    res.status(500).json({ error: 'Internal server error' });
+	  }
+	});
 	app.post('/api/addartist', async (req, res, next) =>
 	{
 		// incoming : name, albums(array), jwtToken
@@ -329,21 +333,6 @@ app.post('/api/updateuserrating', async (req, res, next) => {
 
 		var ret = { error: error, jwtToken: refreshedToken };
 		res.status(200).json(ret);
-	});
-
-	// NOT DONE
-	app.post('/api/updateuserrating', async (req, res, next) =>
-	{
-		// incoming: userId, search, jwtToken
-		// outgoing: error, jwtToken
-
-		/*
-			Call searchUserAlbum.
-			Find array position of the returned _id.
-			Update that position in rating array.
-		*/
-
-		res.status(500).json( {error: "Has not been completed yet." } );
 	});
 
 	// NOTICE, THIS USES GET NOT POST!!
