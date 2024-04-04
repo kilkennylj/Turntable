@@ -38,7 +38,7 @@ exports.setApp = function (app, client)
 		if (results.length > 0)
 		{
 			// as discussed above, the left should have one case type, the right has another
-			id = results[0].UserID;
+			id = results[0]._id;
 			firstName = results[0].FirstName;
 			lastName = results[0].LastName;
 
