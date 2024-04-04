@@ -273,8 +273,6 @@ exports.setApp = function (app, client)
 	      return res.status(404).json({ error: 'Album not found for the user' });
 	    }
 
-		console.log(albumIndex);
-
 	    // Update user rating
 	    const db = client.db("Turntable");
 	    await db.collection('Users').updateOne(
