@@ -235,6 +235,7 @@ exports.setApp = function (app, client)
 	    const db = client.db("Turntable");
 	    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
 
+
 	    // Find the index of the album in the user's collection
 	    const albumIndex = user.Albums.findIndex(album => album.Name.toLowerCase() === search.toLowerCase());
 	    return albumIndex;
