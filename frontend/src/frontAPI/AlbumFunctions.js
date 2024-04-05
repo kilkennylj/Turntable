@@ -110,32 +110,41 @@ function AlbumFunctions() {
     const searchAlbums = async (query) => {
         try {
             const userData = JSON.parse(localStorage.getItem('user_data'));
+
             if (!userData || !userData.id) {
                 throw new Error('User data not found');
             }
-            const obj = { search: query, jwtToken: userData.jwtToken };
-            const js = JSON.stringify(obj);
-            console.log(js);
+
+            const obj_add = {userId: userData.id, name: query, jwtToken: userData.jwtToken };
+            const js_add = JSON.stringify(obj_add);
+            console.log(js_add);
+
             setLoading(true);
-            const response = await fetch(bp.buildPath('api/adduseralbum'), {
+            const add_response = await fetch(bp.buildPath('api/adduseralbum'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: js
+                body: js_add
             });
 
-            console.log(response);
-
-            if (!response.ok) {
+            if (!add_response.ok) {
                 throw new Error('Failed to search albums');
             }
 
-            const data = await response.json();
-            const albumData = data.results;
+            const obj_search = {userId: userData.id, search: query, jwtToken: userData.jwtToken};
+            const js_search = JSON.stringify(obj_search);
 
-            console.log(data);
-            console.log(albumData);
+            const search_response = await fetch(bp.buildPath("api/searchuseralbum"), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: js_search
+            });
+
+            const data = await search_response.json();
+            const albumData = data.albums[0];
 
             if (!albumData) {
                 throw new Error('Invalid album data');
