@@ -1,57 +1,61 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import "../../styles/AlbumCarousel.css";
+import AlbumFunctions from "../../frontAPI/AlbumFunctions";
 
 function AlbumCarousel() {
-  const [flippedIndex, setFlippedIndex] = useState(-1); // Keep track of the flipped card index
-  const [showTracklist, setShowTracklist] = useState(false); // State to manage tracklist visibility
-  const thisBack = useRef(null);
+  const { albums, loading, handleDelete } = AlbumFunctions();
+  const [flippedIndex, setFlippedIndex] = useState(-1);
+  const [showTracklist, setShowTracklist] = useState(false);
+
+  useEffect(() => {
+    setFlippedIndex(-1);
+    setShowTracklist(false);
+  }, [albums]);
 
   const handleCardClick = (index) => {
     if (index === flippedIndex) {
-      // If the clicked card is already flipped, unflip it and hide the tracklist
       setFlippedIndex(-1);
       setShowTracklist(false);
     } else {
-      // Otherwise, flip the clicked card and show the tracklist
       setFlippedIndex(index);
       setShowTracklist(true);
     }
   };
 
   const renderCardContent = (index) => {
+    const album = albums[index];
     if (index === flippedIndex) {
-      // If the card is flipped, render the back face content
       return (
         <div className="back">
-          <h3 className="title">Album Title</h3>
-          <p className="artist">Artist Name</p>
-          <p className="release">Release Date</p>
-          <p className="tags">Tags</p>
-          <p className="review">Review</p>
+          <h3 className="title">{album.albumName}</h3>
+          <p className="artist">{album.artistName}</p>
+          <p className="release">{album.albumYear}</p>
+          <p className="tags">{album.albumTags.join(", ")}</p>
+          {/* Review solution goes here */}
           <div className="delete_div">
-            <button className="delete_button">X</button>
+            <button className="delete_button" onClick={() => handleDelete()}>X</button>
           </div>
-        </div> // Gather information from album object
+        </div>
       );
     } else {
-      // Otherwise, render the front face content
       return (
         <div className="front">
-          <img className="carousel_img" src={`/assets/img/test_${index + 1}.jpg`} alt="Album cover" />
-        </div> // given a index, retrieve img from array used to form carousel
+          <img className="carousel_img" src={album.coverImage} alt="Album cover" />
+        </div>
       );
     }
   };
 
   const settings = {
-    customPaging: function(i) {
+    customPaging: function (i) {
+      const album = albums[i];
       return (
         <a>
-          <img className="carousel_thumbnail" src={`/assets/img/test_${1+i}.jpg`} />
-        </a> // Iterator through album array
+          <img className="carousel_thumbnail" src={album.coverImage} alt="Album cover" />
+        </a>
       );
     },
     dots: true,
@@ -63,23 +67,28 @@ function AlbumCarousel() {
     slidesToShow: 3,
   };
 
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="slider_container">
       <div className="carousel_box">
-      <Slider {...settings}>
-        {[1, 2, 3, 4].map((index) => (
-          <div key={index} onClick={() => handleCardClick(index - 1)}>
-            {renderCardContent(index - 1)} 
-          </div> // Here goes API function to fill carousel
-        ))}
-      </Slider>
+        <Slider {...settings}>
+          {albums.map((album, index) => (
+            <div key={index} onClick={() => handleCardClick(index)}>
+              {renderCardContent(index)}
+            </div>
+          ))}
+        </Slider>
       </div>
       {showTracklist && (
         <div className="tracklist_box">
           <h2>Tracklist</h2>
           <ul>
-            <li>Track 1</li>
-            <li>Track 2</li>
+            {albums[flippedIndex].Tracks.map((track, index) => (
+              <li key={index}>{track}</li>
+            ))}
           </ul>
         </div>
       )}

@@ -225,6 +225,7 @@ exports.setApp = function (app, client)
 
 		res.status(200).json( {error: error, jwtToken: refreshedToken } );
 	});
+
 	app.post('/api/updateuserrating', async (req, res, next) => {
 	  // incoming: userId, name, rating, jwtToken
 	  // outgoing: error, jwtToken
@@ -290,6 +291,7 @@ exports.setApp = function (app, client)
 	    res.status(500).json({ error: 'Internal server error' });
 	  }
 	});
+
 	app.post('/api/addartist', async (req, res, next) =>
 	{
 		// incoming : name, albums(array), jwtToken
@@ -335,9 +337,8 @@ exports.setApp = function (app, client)
 		res.status(200).json(ret);
 	});
 
-	// NOTICE, THIS USES GET NOT POST!!
 	// This searches LastFM for an album given some text relating to album title
-	app.get('/api/searchalbum', async (req, res) =>
+	app.post('/api/searchalbum', async (req, res, next) =>
 	{
 		// incoming: search, jwtToken
 		// outgoing: name, artist, year, tags, tracks, length, cover, error, jwtToken
@@ -394,9 +395,8 @@ exports.setApp = function (app, client)
 		res.status(200).json(ret);
 	});
 
-	// NOTICE, THIS USES GET NOT POST!!
 	// This searches the database
-	app.get('/api/searchuseralbum', async(req, res) =>
+	app.post('/api/searchuseralbum', async(req, res, next) =>
 	{
 		// incoming: userId, search, jwtToken
 		// outgoing: albums {name, artist, year, tags, tracks, length, cover }, error, jwtToken
