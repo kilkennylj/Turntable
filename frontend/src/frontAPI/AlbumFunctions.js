@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Album, Tracklist, Track } from "../models/Album";
+import decode from "jwt-decode";
 
 const getRandomPlaceholderCover = () => {
     // Generate a random number between 0 and 1
@@ -33,21 +34,27 @@ function AlbumFunctions() {
     useEffect(() => {
         //Retrieve user info from local storage
         const userData = JSON.parse(localStorage.getItem('user_data'));
+
+        var storage = require('../tokenStorage.js');
+
         if (!userData || !userData.id) {
             throw new Error('User data not found');
         }
 
         const fetchAlbumsFromAPI = async () => {
+            
+            console.log(storage.retrieveToken());
+            
             try {
                 const response = await fetch('/api/searchuseralbum', {
-                    method: 'GET',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         userId: userData.id,
                         search: '', // Empty search to get all albums associated with the user
-                        jwtToken: userData.jwtToken
+                        jwtToken: storage.retrieveToken()
                     })
                 });
 
@@ -55,7 +62,8 @@ function AlbumFunctions() {
                     throw new Error('Failed to fetch albums');
                 }
 
-                const data = await response.json();
+                const data = JSON.parse(await response.json());
+                
 
                 let formattedAlbums = [];
 
@@ -111,7 +119,7 @@ function AlbumFunctions() {
                 throw new Error('User data not found');
             }
             setLoading(true);
-            const response = await fetch('api/search', {
+            const response = await fetch('/api/adduseralbum', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
