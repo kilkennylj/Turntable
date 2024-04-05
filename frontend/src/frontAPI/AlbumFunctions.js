@@ -31,6 +31,8 @@ function AlbumFunctions() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    var bp = require('./Path.js');	
+
     useEffect(() => {
         //Retrieve user info from local storage
         const userData = JSON.parse(localStorage.getItem('user_data'));
@@ -43,10 +45,8 @@ function AlbumFunctions() {
 
         const fetchAlbumsFromAPI = async () => {
             
-            console.log(userData.jwtToken);
-            
             try {
-                const response = await fetch('/api/searchuseralbum', {
+                const response = await fetch(bp.buildPath('api/searchuseralbum'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ function AlbumFunctions() {
                     throw new Error('Failed to fetch albums');
                 }
 
-                const data = JSON.parse(await response.json());
+                const data = await response.json();
                 
 
                 let formattedAlbums = [];
@@ -82,12 +82,12 @@ function AlbumFunctions() {
                 } else {
                     const formattedAlbums = data.albums.map(albumData => {
                         // Create tracks for the album
-                        const tracks = albumData.Tracks.map((trackName, index) => {
-                            return new Track(trackName, albumData.Length[index]);
-                        });
+                        // const tracks = albumData.Tracks.map((trackName, index) => {
+                        //     return new Track(trackName, albumData.Length[index]);
+                        // });
 
                         // Create a tracklist for the album
-                        const tracklist = new Tracklist(tracks);
+                        // const tracklist = new Tracklist(tracks);
 
                         // Create the album object
                         return new Album(
@@ -95,7 +95,8 @@ function AlbumFunctions() {
                             albumData.Artist,
                             albumData.Year,
                             albumData.Tags,
-                            [tracklist],
+                            albumData.Tracks,
+                            albumData.Length,
                             albumData.Cover
                         );
                     });
@@ -118,8 +119,9 @@ function AlbumFunctions() {
             if (!userData || !userData.id) {
                 throw new Error('User data not found');
             }
+
             setLoading(true);
-            const response = await fetch('/api/adduseralbum', {
+            const response = await fetch(bp.buildPath('api/adduseralbum'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
