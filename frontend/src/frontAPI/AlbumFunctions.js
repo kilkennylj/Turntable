@@ -80,7 +80,10 @@ function AlbumFunctions() {
 
                     formattedAlbums = [templateAlbum];
                 } else {
-                    const formattedAlbums = data.albums.map(albumData => {
+                    formattedAlbums = data.albums.map(albumData => {
+                        // NOTE: I kept this code commented because I'm not sure why you had it. 
+                        // If it did something important besides just getting Tracks and Length, then try to reimplement it
+                         
                         // Create tracks for the album
                         // const tracks = albumData.Tracks.map((trackName, index) => {
                         //     return new Track(trackName, albumData.Length[index]);
