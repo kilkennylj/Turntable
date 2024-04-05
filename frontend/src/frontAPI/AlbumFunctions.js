@@ -36,10 +36,10 @@ function AlbumFunctions() {
     useEffect(() => {
         //Retrieve user info from local storage
         const userData = JSON.parse(localStorage.getItem('user_data'));
+        const obj = {userId: userData.id, search: "", jwtToken: userData.jwtToken};
+        const js = JSON.stringify(obj);
 
-        var storage = require('../tokenStorage.js');
-
-        if (!userData || !userData.id) {
+        if (!userData) {
             throw new Error('User data not found');
         }
 
@@ -51,11 +51,7 @@ function AlbumFunctions() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        userId: userData.id,
-                        search: '', // Empty search to get all albums associated with the user
-                        jwtToken: userData.jwtToken
-                    })
+                    body: js
                 });
 
                 if (!response.ok) {
@@ -63,7 +59,6 @@ function AlbumFunctions() {
                 }
 
                 const data = await response.json();
-                
 
                 let formattedAlbums = [];
 
@@ -83,23 +78,19 @@ function AlbumFunctions() {
                     formattedAlbums = data.albums.map(albumData => {
                         // NOTE: I kept this code commented because I'm not sure why you had it. 
                         // If it did something important besides just getting Tracks and Length, then try to reimplement it
-                         
                         // Create tracks for the album
-                        // const tracks = albumData.Tracks.map((trackName, index) => {
-                        //     return new Track(trackName, albumData.Length[index]);
-                        // });
-
+                        const tracks = albumData.Tracks.map((trackName, index) => {
+                            return new Track(trackName, albumData.Length[index]);
+                        });
                         // Create a tracklist for the album
-                        // const tracklist = new Tracklist(tracks);
-
+                        const tracklist = new Tracklist(tracks);
                         // Create the album object
                         return new Album(
                             albumData.Name,
                             albumData.Artist,
                             albumData.Year,
                             albumData.Tags,
-                            albumData.Tracks,
-                            albumData.Length,
+                            [tracklist],
                             albumData.Cover
                         );
                     });
