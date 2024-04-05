@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, FlatList, ScrollView, TouchableOpacity, Button } from 'react-native';
-import { Header } from 'react-native-elements';
 
-
-
-
-const LandingPage = ({ navigation }) => {
-  // const { jwt } = route.params;
+const LandingPage = ({ navigation, route }) => {
+  //const { jwt } = route.params;
 
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
@@ -36,20 +32,19 @@ const LandingPage = ({ navigation }) => {
   };
 
   const searchAlbum = async () => {
-    console.log("Trying to send data");
+    console.log("Trying to send data", searchQuery, jwt);
     try {
-      const data = {
+      const params = new URLSearchParams({
         userId: '65d91cfbf69237517bfc711',
-        search: searchQuery, // Using search query
+        search: searchQuery,
         jwtToken: jwt,
-      };
+      });
 
-      const response = await fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/searchuseralbum', {
-        method: 'POST',
+      const response = await fetch(`https://turntable-d8f41b9ae77d.herokuapp.com/api/searchuseralbum?${params}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -65,7 +60,6 @@ const LandingPage = ({ navigation }) => {
       console.error('Error:', error);
     }
   };
-
   const addAlbum = () => {
     const data = {
 
@@ -97,6 +91,7 @@ const LandingPage = ({ navigation }) => {
         setMessage('Error adding album. Please try again.');
       });
   };
+
   const handleAlbumPress = (album) => {
     setName(album.name);
     setYear(album.year);
@@ -119,7 +114,6 @@ const LandingPage = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-
       <FlatList
         data={albums}
         renderItem={renderAlbumCover}
@@ -128,19 +122,6 @@ const LandingPage = ({ navigation }) => {
         contentContainerStyle={styles.scrollViewContainer}
       />
       <ScrollView style={styles.textContainer}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search albums"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Search" onPress={searchAlbum} color="grey" />
-            <View style={styles.gap} />
-            <Button title="Add" onPress={handleAddAlbum} color="grey" />
-          </View>
-        </View>
         <Text>Name: {name}</Text>
         <Text>Year: {year}</Text>
         <Text>Genres: {genres.join(', ')}</Text>
@@ -148,26 +129,33 @@ const LandingPage = ({ navigation }) => {
         <Text>Tracks: {tracks.join(', ')}</Text>
         <Text>Length: {length.join(', ')}</Text>
         <Text>Cover: {cover}</Text>
-
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search albums"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Button title="Search" onPress={searchAlbum} />
+          <Button title="Add" onPress={handleAddAlbum} />
+        </View>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
-    backgroundColor: '#6C6C6C',
+    backgroundColor: '#fff',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
     marginTop: 10,
     marginBottom: 10,
-
-
   },
   searchInput: {
     flex: 1,
@@ -180,18 +168,13 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     paddingHorizontal: 5,
     paddingVertical: 5,
-    backgroundColor: '#6C6C6C',
-    height: 500,
-
   },
   albumContainer: {
     marginHorizontal: 10,
     alignItems: 'center',
-    backgroundColor: 'red',
+    backgroundColor: '#B3C8CF',
     borderRadius: 10,
     padding: 10,
-    height: '99%',
-
   },
   albumTitle: {
     fontSize: 16,
@@ -199,28 +182,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   albumCoverImage: {
-    width: 450,
-    height: 450,
-
+    width: 500,
+    height: 500,
+    resizeMode: 'cover',
   },
   textContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: '#C0C0C0',
-
-  },
-  buttonContainer: {
-    backgroundColor: '#C0C0C0',
-    borderColor: 'gray',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-
-  },
-  gap: {
-    width: 10, // Adjust the gap size as needed
   },
 });
 
