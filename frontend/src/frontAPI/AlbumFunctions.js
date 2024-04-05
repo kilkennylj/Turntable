@@ -43,7 +43,7 @@ function AlbumFunctions() {
 
         const fetchAlbumsFromAPI = async () => {
             
-            console.log(storage.retrieveToken());
+            console.log(userData.jwtToken);
             
             try {
                 const response = await fetch('/api/searchuseralbum', {
@@ -54,7 +54,7 @@ function AlbumFunctions() {
                     body: JSON.stringify({
                         userId: userData.id,
                         search: '', // Empty search to get all albums associated with the user
-                        jwtToken: storage.retrieveToken()
+                        jwtToken: userData.jwtToken
                     })
                 });
 
