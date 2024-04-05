@@ -31,12 +31,12 @@ function AlbumFunctions() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    var bp = require('./Path.js');	
+    var bp = require('./Path.js');
 
     useEffect(() => {
         //Retrieve user info from local storage
         const userData = JSON.parse(localStorage.getItem('user_data'));
-        const obj = {userId: userData.id, search: "", jwtToken: userData.jwtToken};
+        const obj = { userId: userData.id, search: "", jwtToken: userData.jwtToken };
         const js = JSON.stringify(obj);
 
         if (!userData) {
@@ -44,7 +44,7 @@ function AlbumFunctions() {
         }
 
         const fetchAlbumsFromAPI = async () => {
-            
+
             try {
                 const response = await fetch(bp.buildPath('api/searchuseralbum'), {
                     method: 'POST',
@@ -113,38 +113,58 @@ function AlbumFunctions() {
             if (!userData || !userData.id) {
                 throw new Error('User data not found');
             }
-
+            const obj = { search: query, jwtToken: userData.jwtToken };
+            const js = JSON.stringify(obj);
+            console.log(js);
             setLoading(true);
             const response = await fetch(bp.buildPath('api/adduseralbum'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ search: query, jwtToken: userData.jwtToken }),
+                body: js
             });
+
+            console.log(response);
+
             if (!response.ok) {
                 throw new Error('Failed to search albums');
             }
+
             const data = await response.json();
-            // Map the API response data to instances of the Album class
-            const newAlbums = data.results.map(albumData => {
-                const tracklist = new Tracklist(albumData.Tracks.map((track, index) => new Track(track, albumData.Length[index])));
-                return new Album(
-                    albumData.Name,
-                    albumData.Artist,
-                    albumData.Year,
-                    albumData.Tags,
-                    tracklist,
-                    albumData.Cover
-                );
+            const albumData = data.results;
+
+            console.log(data);
+            console.log(albumData);
+
+            if (!albumData) {
+                throw new Error('Invalid album data');
+            }
+
+            const tracks = albumData.Tracks.map((trackName, index) => {
+                return new Track(trackName, albumData.Length[index]);
             });
-            setAlbums(prevAlbums => [...prevAlbums, ...newAlbums]);
+            // Create a tracklist for the album
+            const tracklist = new Tracklist(tracks);
+
+            // Create the album object
+            const newAlbum = new Album(
+                albumData.Name,
+                albumData.Artist,
+                albumData.Year,
+                albumData.Tags,
+                [tracklist],
+                albumData.Cover
+            );
+
+            setAlbums(prevAlbums => [...prevAlbums, newAlbum]);
             setLoading(false);
         } catch (error) {
             console.error('Error searching albums:', error);
             setLoading(false);
         }
     };
+
 
     const handleDelete = (index) => {
         // Handle deletion of album
