@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "frontend-mobile",
+    "slug": "frontend-mobile",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
