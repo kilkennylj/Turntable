@@ -492,6 +492,61 @@ exports.setApp = function (app, client)
 
 		// findUserAlbumIndex, delete Ratings at index, delete Albums at index
 
+		const { userId, name, jwtToken } = req.body;
+		
+		var token = require('./createJWT.js');
+
+		const db = client.db("Turntable");
+
+		var error = '';
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		var user = await db.collection('Users').findOne( {_id: new ObjectId(userId)} );
+		
+		var index = await findUserAlbumIndex(userId, name);
+
+		// Should never occur
+		if (index === -1)
+		{
+			error = "User doesn't have this album."
+		}
+
+		else
+		{
+			user.Albums.splice(index, 1);
+			user.Ratings.splice(index, 1);
+
+			await db.collection('Users').updateOne( {_id: new ObjectId(userId)} , {$set: { Albums: user.Albums, Ratings: user.Ratings } } );
+		}
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		res.status(200).json( { error: error, jwtToken: refreshedToken } );
+
 	});
 
 	// Function to search for the user album
