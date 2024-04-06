@@ -516,7 +516,7 @@ exports.setApp = function (app, client)
 		}
 
 		var user = await db.collection('Users').findOne( {_id: new ObjectId(userId)} );
-		
+
 		var index = await findUserAlbumIndex(userId, name);
 
 		// Should never occur
@@ -934,13 +934,10 @@ exports.setApp = function (app, client)
 		// Checks for bad values
 		for (var i = 0; i < album.Tracks.length; i++)
 		{
-			// If broken, fix using Spotify
-			if (album.Length[i] == null)
-			{
-				var milli = response.data.tracks.items[i].duration_ms;
+			// LastFM song lengths are wildly inaccurate, so just use spotify
+			var milli = response.data.tracks.items[i].duration_ms;
 
-				album.Length[i] = Math.ceil(milli / 1000);
-			}
+			album.Length[i] = Math.ceil(milli / 1000);
 
 			album.Tracks[i] = titleCleaner(album.Tracks[i]);
 		}
