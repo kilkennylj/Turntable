@@ -184,26 +184,40 @@ exports.setApp = function (app, client)
 		{
 			const db = client.db("Turntable");
 			var results = await db.collection('Albums').find({Name: {$regex: name+'.*', $options:'i'}}).toArray();
-			var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
 
 			var albumId;
 
-			// In Database
+			// If Album is in Database
 			if (results.length > 0)
 			{
 				albumId = results[0]._id;
 			}
 
-			// Not in database
+			// If Album is not in database
 			else
 			{
 				albumId = await searchAlbum(key, name).album._id;
 			}
 
-			await db.collection('Users').updateOne(
-				{ _id: new ObjectId(userId) },
-				{ $push: { Albums: albumId, Ratings: -1 } }
-			  );
+			var index = await findUserAlbumIndex(userId, name);
+
+			console.log(index);
+
+			// If it isnt already a user album, add it
+			if (index === -1)
+			{
+				await db.collection('Users').updateOne(
+					{ _id: new ObjectId(userId) },
+					{ $push: { Albums: albumId, Ratings: -1 } }
+				  );
+			}
+
+			// If the user already has the album, let front-end know
+			else
+			{
+				error = "User already has this album!";
+			}
+			
 
 			var refreshedToken = null;
 
@@ -232,30 +246,6 @@ exports.setApp = function (app, client)
 
 	  const { userId, name, rating, jwtToken } = req.body;
 
-	  // Function to search for the user album
-	  async function searchUserAlbum(userId, name) {
-	    const db = client.db("Turntable");
-	    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
-
-		const userAlbums = user.Albums;
-
-		const searchRes = await db.collection('Albums').findOne( { Name: {$regex: name, $options:'i'}} );
-
-		if (searchRes === null)
-			return -1;
-
-	    // Find the index of the album in the user's collection
-		for (var i = 0; i < userAlbums.length; i++)
-		{
-			if (userAlbums[i].toString() === searchRes._id.toString())
-			{
-				return i;
-			}
-		}
-
-	    return -1;
-	  }
-
 	  var error = '';
 
 	  var token = require('./createJWT.js');
@@ -267,7 +257,7 @@ exports.setApp = function (app, client)
 	    }
 
 	    // Search for the album
-	    const albumIndex = await searchUserAlbum(userId, name);
+	    const albumIndex = await findUserAlbumIndex(userId, name);
 
 	    // If album not found, return error
 	    if (albumIndex === -1) {
@@ -494,6 +484,39 @@ exports.setApp = function (app, client)
 
 		res.status(200).json( { albums: results, error: error, jwtToken: refreshedToken } );
 	});
+
+	app.post('/api/deleteuseralbum', async(req, res, next) =>
+	{
+		// incoming: userId, name, jwtToken
+		// outgoing: error, jwtToken
+
+		// findUserAlbumIndex, delete Ratings at index, delete Albums at index
+
+	});
+
+	// Function to search for the user album
+	async function findUserAlbumIndex(userId, name) {
+		const db = client.db("Turntable");
+		const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+		const userAlbums = user.Albums;
+
+		const searchRes = await db.collection('Albums').findOne( { Name: {$regex: name, $options:'i'}} );
+
+		if (searchRes === null)
+			return -1;
+
+		// Find the index of the album in the user's collection
+		for (var i = 0; i < userAlbums.length; i++)
+		{
+			if (userAlbums[i].toString() === searchRes._id.toString())
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	async function searchArtist(search)
 	{
