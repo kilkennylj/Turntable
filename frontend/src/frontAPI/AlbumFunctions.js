@@ -144,30 +144,31 @@ function AlbumFunctions() {
             });
 
             const data = await search_response.json();
-            const albumData = data.albums[0];
 
-            if (!albumData) {
+            if (!data) {
                 throw new Error('Invalid album data');
             }
 
-            const tracks = albumData.Tracks.map((trackName, index) => {
-                return new Track(trackName, albumData.Length[index]);
+            let formattedAlbums = data.albums.map(albumData => {
+                // Create tracks for the album
+                const tracks = albumData.Tracks.map((trackName, index) => {
+                    return new Track(trackName, albumData.Length[index]);
+                });
+                // Create a tracklist for the album
+                const tracklist = new Tracklist(tracks);
+                // Create the album object
+                return new Album(
+                    albumData.Name,
+                    albumData.Artist,
+                    albumData.Year,
+                    albumData.Tags,
+                    [tracklist],
+                    albumData.Cover
+                );
             });
-            // Create a tracklist for the album
-            const tracklist = new Tracklist(tracks);
-
-            // Create the album object
-            const newAlbum = new Album(
-                albumData.Name,
-                albumData.Artist,
-                albumData.Year,
-                albumData.Tags,
-                [tracklist],
-                albumData.Cover
-            );
-
-            setAlbums(prevAlbums => [...prevAlbums, newAlbum]);
+            setAlbums(formattedAlbums);
             setLoading(false);
+            return formattedAlbums;
         } catch (error) {
             console.error('Error searching albums:', error);
             setLoading(false);
