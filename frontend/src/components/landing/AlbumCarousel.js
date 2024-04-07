@@ -88,7 +88,7 @@ function AlbumCarousel() {
           <ul>
             {albums[flippedIndex].tracklists[0].tracks.map((track, index) => (
               <li key={index}>
-                {track.name} - {track.length}
+                {track.name} - {Math.floor(track.length / 60)}:{(track.length % 60) < 10 ? '0' + (track.length % 60) : (track.length % 60)}
               </li>
             ))}
           </ul>
