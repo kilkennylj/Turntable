@@ -9,10 +9,16 @@ function AlbumCarousel() {
   const { albums, loading, handleDelete } = AlbumFunctions();
   const [flippedIndex, setFlippedIndex] = useState(-1);
   const [showTracklist, setShowTracklist] = useState(false);
+  const [slidesToShow, setSlidesToShow] = useState(3);
 
   useEffect(() => {
     setFlippedIndex(-1);
     setShowTracklist(false);
+
+    // Set slidesToShow based on the number of albums
+    if (albums.length > 0) {
+      setSlidesToShow(Math.min(albums.length, 3));
+    }
   }, [albums]);
 
   const handleCardClick = (index) => {
@@ -64,7 +70,7 @@ function AlbumCarousel() {
     centerMode: true,
     centerPadding: "50px",
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: slidesToShow,
   };
 
   if (loading) {
@@ -82,15 +88,17 @@ function AlbumCarousel() {
           ))}
         </Slider>
       </div>
-      {showTracklist && (
+      {showTracklist && albums[flippedIndex]?.tracklists[0]?.tracks && (
         <div className="tracklist_box">
           <h2>Tracklist</h2>
           <ul>
-            {albums[flippedIndex].tracklists[0].tracks.map((track, index) => (
-              <li key={index}>
-                {track.name} - {Math.floor(track.length / 60)}:{(track.length % 60) < 10 ? '0' + (track.length % 60) : (track.length % 60)}
-              </li>
-            ))}
+            {albums[flippedIndex].tracklists[0].tracks.map((track, index) => {
+              return (
+                <li key={index}>
+                  {track.name} - {Math.floor(track.length / 60)}:{(track.length % 60) < 10 ? '0' + (track.length % 60) : (track.length % 60)}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
