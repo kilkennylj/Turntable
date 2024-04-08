@@ -3,20 +3,17 @@ import { Album, Tracklist, Track } from "../models/Album";
 import decode from "jwt-decode";
 
 const getRandomPlaceholderCover = () => {
-    // Generate a random number between 0 and 1
     const randomNumber = Math.random();
 
     // Define the probabilities for each placeholder cover image
     const probabilities = [
-        { cover: "/assets/img/placeholder/placeholder_1.jpg", chance: 0.05 },
-        { cover: "/assets/img/placeholder/placeholder_2.jpg", chance: 0.2 },
-        { cover: "/assets/img/placeholder/placeholder_3.jpg", chance: 0.45 },
-        { cover: "/assets/img/placeholder/placeholder_4.jpg", chance: 0.3 }
+        { cover: "/assets/img/placeholder_1.jpeg", chance: 0.05 },
+        { cover: "/assets/img/placeholder_2.jpeg", chance: 0.2 },
+        { cover: "/assets/img/placeholder_3.jpeg", chance: 0.45 },
+        { cover: "/assets/img/placeholder_4.jpeg", chance: 0.3 }
     ];
 
-    // Iterate through the probabilities
     for (const probability of probabilities) {
-        // If the random number falls within the probability range, select the cover
         if (randomNumber < probability.chance) {
             return probability.cover;
         }
@@ -60,7 +57,11 @@ function AlbumFunctions() {
 
                 const data = await response.json();
 
+                console.log(data);
+
                 let formattedAlbums = [];
+
+                console.log(data.albums.length);
 
                 if (data.albums.length === 0) {
                     // If user has no albums, create a template album
@@ -69,15 +70,14 @@ function AlbumFunctions() {
                         "To get started, add one album by using",
                         "the search bar above.",
                         ["You can use this website to save albums you have listened to and review them."],
-                        ["Here is where your tracklist would go! ... If you had albums ..."],
-                        getRandomPlaceholderCover
+                        new Tracklist( [new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
+                        getRandomPlaceholderCover()
                     );
-
+                    console.log(templateAlbum);
                     formattedAlbums = [templateAlbum];
+                    console.log(formattedAlbums);
                 } else {
                     formattedAlbums = data.albums.map(albumData => {
-                        // NOTE: I kept this code commented because I'm not sure why you had it. 
-                        // If it did something important besides just getting Tracks and Length, then try to reimplement it
                         // Create tracks for the album
                         const tracks = albumData.Tracks.map((trackName, index) => {
                             return new Track(trackName, albumData.Length[index]);

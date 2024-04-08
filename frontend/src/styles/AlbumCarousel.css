@@ -3,14 +3,20 @@
     src: url("../../public/fonts/BebasNeue-Regular.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
-  }
+}
 
-  @font-face {
+@font-face {
     font-family: "Poppins-Light";
     src: url("../../public/fonts/Poppins-Light.ttf") format("truetype");
     font-weight: 300;
     font-style: light;
-  }
+}
+
+.slick-slider .slick-track,
+.slick-slider .slick-list {
+    display: flex;
+    transform: translate3d(0, 0, 0);
+}
 
 .slider_container {
     display: flex;
@@ -18,7 +24,7 @@
     height: 100%;
     flex-direction: column;
     align-items: center;
-    z-index: 3; 
+    z-index: 3;
 }
 
 .delete_div {
@@ -70,14 +76,12 @@
     position: static;
 }
 
-.slick-dots li
-{
+.slick-dots li {
     height: 40px;
     width: 40px;
 }
 
-.carousel_img
-{
+.carousel_img {
     width: 350px;
     height: 350px;
 }
@@ -88,14 +92,16 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 20px;
-  }
+}
 
 .title {
     font-family: "Bebas Neue";
     font-size: 28px;
 }
 
-.artist, .release, .tags {
+.artist,
+.release,
+.tags {
     font-family: "Poppins-Light";
     font-size: 18px;
 }
