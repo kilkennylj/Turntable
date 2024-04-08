@@ -654,7 +654,7 @@ exports.setApp = function (app, client)
 		try
 		{
 			const db = client.db("Turntable");
-			const result = db.collection("Artists").insertOne(newArtist);
+			const result = await db.collection("Artists").insertOne(newArtist);
 		}
 		catch (e)
 		{
