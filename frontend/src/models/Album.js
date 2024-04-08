@@ -1,17 +1,17 @@
-class Track {
+export class Track {
   constructor(name, length) {
     this.name = name;
     this.length = length;
   }
 }
 
-class Tracklist {
+export class Tracklist {
   constructor(tracks) {
     this.tracks = tracks;
   }
 }
 
-class Album {
+export class Album {
   constructor(albumName, artistName, albumYear, albumTags, tracklists, coverImage) {
     this.albumName = albumName;
     this.artistName = artistName;

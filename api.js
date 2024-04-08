@@ -184,26 +184,38 @@ exports.setApp = function (app, client)
 		{
 			const db = client.db("Turntable");
 			var results = await db.collection('Albums').find({Name: {$regex: name+'.*', $options:'i'}}).toArray();
-			var user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
 
 			var albumId;
 
-			// In Database
+			// If Album is in Database
 			if (results.length > 0)
 			{
 				albumId = results[0]._id;
 			}
 
-			// Not in database
+			// If Album is not in database
 			else
 			{
 				albumId = await searchAlbum(key, name).album._id;
 			}
 
-			await db.collection('Users').updateOne(
-				{ _id: new ObjectId(userId) },
-				{ $push: { Albums: albumId, Ratings: -1 } }
-			  );
+			var index = await findUserAlbumIndex(userId, name);
+
+			// If it isnt already a user album, add it
+			if (index === -1)
+			{
+				await db.collection('Users').updateOne(
+					{ _id: new ObjectId(userId) },
+					{ $push: { Albums: albumId, Ratings: -1 } }
+				  );
+			}
+
+			// If the user already has the album, let front-end know
+			else
+			{
+				error = "User already has this album!";
+			}
+			
 
 			var refreshedToken = null;
 
@@ -232,30 +244,6 @@ exports.setApp = function (app, client)
 
 	  const { userId, name, rating, jwtToken } = req.body;
 
-	  // Function to search for the user album
-	  async function searchUserAlbum(userId, name) {
-	    const db = client.db("Turntable");
-	    const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
-
-		const userAlbums = user.Albums;
-
-		const searchRes = await db.collection('Albums').findOne( { Name: {$regex: name, $options:'i'}} );
-
-		if (searchRes === null)
-			return -1;
-
-	    // Find the index of the album in the user's collection
-		for (var i = 0; i < userAlbums.length; i++)
-		{
-			if (userAlbums[i].toString() === searchRes._id.toString())
-			{
-				return i;
-			}
-		}
-
-	    return -1;
-	  }
-
 	  var error = '';
 
 	  var token = require('./createJWT.js');
@@ -267,7 +255,7 @@ exports.setApp = function (app, client)
 	    }
 
 	    // Search for the album
-	    const albumIndex = await searchUserAlbum(userId, name);
+	    const albumIndex = await findUserAlbumIndex(userId, name);
 
 	    // If album not found, return error
 	    if (albumIndex === -1) {
@@ -495,6 +483,162 @@ exports.setApp = function (app, client)
 		res.status(200).json( { albums: results, error: error, jwtToken: refreshedToken } );
 	});
 
+	app.post('/api/deleteuseralbum', async(req, res, next) =>
+	{
+		// incoming: userId, name, jwtToken
+		// outgoing: error, jwtToken
+
+		// findUserAlbumIndex, delete Ratings at index, delete Albums at index
+
+		const { userId, name, jwtToken } = req.body;
+		
+		var token = require('./createJWT.js');
+
+		const db = client.db("Turntable");
+
+		var error = '';
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		var user = await db.collection('Users').findOne( {_id: new ObjectId(userId)} );
+
+		var index = await findUserAlbumIndex(userId, name);
+
+		// Should never occur
+		if (index === -1)
+		{
+			error = "User doesn't have this album."
+		}
+
+		else
+		{
+			user.Albums.splice(index, 1);
+			user.Ratings.splice(index, 1);
+
+			await db.collection('Users').updateOne( {_id: new ObjectId(userId)} , {$set: { Albums: user.Albums, Ratings: user.Ratings } } );
+		}
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		res.status(200).json( { error: error, jwtToken: refreshedToken } );
+
+	});
+
+	// Suggests albums based off of most common tag of a user
+	app.post('/api/getsuggestions', async(req, res, next) =>
+	{
+		// incoming: userId, jwtToken
+		// outgoing: albums(array), error, jwtToken
+
+		// outline: get user, get most common tag, use lastfm tag.getTopAlbums, add 6 of these albums,
+		//          check user for these albums, remove ones the user has, return 3
+
+		// need: possibly return more than just most common tag 
+
+		const { userId, jwtToken } = req.body;
+
+		var token = require('./createJWT.js');
+
+		const db = client.db("Turntable");
+
+		require('dotenv').config();
+		const key = process.env.LASTFM_API_KEY;
+
+		var error = '';
+
+		try
+		{
+			if (token.isExpired(jwtToken))
+			{
+				var r = { error: 'The JWT is no longer valid', jwtToken: '' };
+				res.status(200).json(r);
+				return;
+			}
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		var user = await db.collection('Users').findOne( {_id: new ObjectId(userId)} );
+
+		var albumIds = user.Albums;
+		var albums = [];
+
+		for (var i = 0; i < albumIds.length; i++)
+		{
+			albums[i] = await db.collection("Albums").findOne({ _id: new ObjectId(albumIds[i])});
+		}
+
+		var topTag = getCommonTag(albums);
+
+		var suggest = await lfmAlbumSuggestions(key, topTag);
+
+		var cleanSuggest = cleanSuggestions(suggest, user.Albums);
+
+		var refreshedToken = null;
+
+		try
+		{
+			refreshedToken = token.refresh(jwtToken);
+		}
+
+		catch (e)
+		{
+			console.log(e.message);
+		}
+
+		res.status(200).json( { albums: cleanSuggest, error: error, jwtToken: refreshedToken } );
+	});
+
+	// Function to search for the user album
+	async function findUserAlbumIndex(userId, name) {
+		const db = client.db("Turntable");
+		const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
+
+		const userAlbums = user.Albums;
+
+		const searchRes = await db.collection('Albums').findOne( { Name: {$regex: name, $options:'i'}} );
+
+		if (searchRes === null)
+			return -1;
+
+		// Find the index of the album in the user's collection
+		for (var i = 0; i < userAlbums.length; i++)
+		{
+			if (userAlbums[i].toString() === searchRes._id.toString())
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	async function searchArtist(search)
 	{
 		const db = client.db("Turntable");
@@ -648,6 +792,47 @@ exports.setApp = function (app, client)
 		}
 	}
 
+	function getCommonTag(albums) {
+		let tagCounts = {};
+
+		// Iterate over each album document
+		albums.forEach(album => {
+			// Iterate over each tag in the album
+			album.Tags.forEach(tag => {
+				// Count occurrences of each tag
+				tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+			});
+		});
+	
+		// Find the tag with the highest count
+		let mostCommonTag = '';
+		let maxCount = 0;
+	
+		for (let tag in tagCounts) {
+			if (tagCounts[tag] > maxCount) {
+				mostCommonTag = tag;
+				maxCount = tagCounts[tag];
+			}
+		}
+	
+		return mostCommonTag;
+	}
+
+	// Removes suggestions that the user already has
+	function cleanSuggestions(suggest, userAlbums)
+	{
+		var cleanSuggest = suggest;
+
+		for(var i = 0; i < userAlbums.length; i++)
+		{
+			if (suggest[i] === userAlbums[i]._id)
+			{
+				cleanSuggest.splice(i, 1);
+			}
+		}
+		return cleanSuggest;
+	}
+
 	// LastFM integration below here. Flipped function naming convention to show they are different.
 
 	// This is the function that finds an album based off of album title text
@@ -685,8 +870,8 @@ exports.setApp = function (app, client)
 		catch (error)
 		{
 			// Handle errors
-			console.error('Error fetching data from Last.fm:', error);
-			return({ error: 'Error fetching data from Last.fm' });
+			console.error('Error using album.search from Last.fm:', error);
+			return({ error: 'Error using album.search from Last.fm' });
 		}
 	}
 
@@ -701,7 +886,6 @@ exports.setApp = function (app, client)
 
 		var year = 0; // Need a workaround, documentation was wrong.
 		var tags = [];
-		// var rating = 5; Only re add if we want a global rating for each album
 		var tracks = [];
 		var length = [];
 
@@ -723,7 +907,6 @@ exports.setApp = function (app, client)
 
 			const album = response.data.album;
 
-			// Some albums have no tags? Don't know why
 			if (album.tags!= '')
 			{
 				for(var i = 0; i < album.tags.tag.length; i++)
@@ -741,13 +924,57 @@ exports.setApp = function (app, client)
 		catch (error)
 		{
 			// Handle errors
-			console.error('Error fetching data from Last.fm:', error);
-			return { error: 'Error fetching data from Last.fm' };
+			console.error('Error using album.getInfo from Last.fm:', error);
+			return { error: 'Error using album.getInfo from Last.fm' };
 		}
 
 		const newAlbum = { Name: name, Artist: artist, Year: year, Tags: tags, Tracks: tracks, Length: length, Cover: cover };
 
 		return newAlbum;
+	}
+
+	// Gets 6 album suggestions, adds them to db
+	async function lfmAlbumSuggestions(key, tag)
+	{
+		const numOfSuggestions = 6;
+
+		var albums = [];
+
+		try
+		{
+			// Make a request to the Last.fm API
+			const response = await axios.get('http://ws.audioscrobbler.com/2.0/',
+			{
+				params:
+				{
+					method: 'tag.gettopalbums',
+					tag: tag,
+					limit: 10,
+					api_key: key,
+					format: 'json'
+				}
+			});
+
+			var suggestions = response.data.albums.album.slice(0,6);
+
+			// Grabs _id from db, or adds the album then grabs _id.
+			for(var i = 0; i < numOfSuggestions; i++)
+			{
+				var cleanName = titleCleaner(suggestions[i].name);
+
+				var temp = await searchAlbum(key, cleanName);
+
+				albums[i] = temp.results[0]._id;
+			}
+		}
+		catch (error)
+		{
+			// Handle errors
+			console.error('Error using tag.gettopalbums from Last.fm:', error);
+			return { error: 'Error using tag.gettopalbums from Last.fm' };
+		}
+
+		return albums;
 	}
 
 	// Checks given album for messed up things, then fixes them. Runs after adding
@@ -856,13 +1083,10 @@ exports.setApp = function (app, client)
 		// Checks for bad values
 		for (var i = 0; i < album.Tracks.length; i++)
 		{
-			// If broken, fix using Spotify
-			if (album.Length[i] == null)
-			{
-				var milli = response.data.tracks.items[i].duration_ms;
+			// LastFM song lengths are wildly inaccurate, so just use spotify
+			var milli = response.data.tracks.items[i].duration_ms;
 
-				album.Length[i] = Math.ceil(milli / 1000);
-			}
+			album.Length[i] = Math.ceil(milli / 1000);
 
 			album.Tracks[i] = titleCleaner(album.Tracks[i]);
 		}
@@ -894,7 +1118,7 @@ exports.setApp = function (app, client)
 	function titleCleaner(title)
 	{
 		// Removes - Remaster, - 0-9*, - Single, - Album, (0-9*), (Remaster), (Deluxe), so on, and the same thing but with [] and everything after all of those.
-		const pattern = /(?:\((?:Remastered|Deluxe|Parental Advisory|Explicit|Album Version|Single Version|\d+)|\[(?:Remastered|Deluxe|Parental Advisory|Explicit|Album Version|Single Version|\d+)|-\s*(?:Remaster|Album|Single|\d+))\s*.*$/i;
+		const pattern = /(?:\((?:Remastered|Deluxe|Super Deluxe|Parental Advisory|Explicit|Album Version|Single Version|Standard Version|\d+)|\[(?:Remastered|Deluxe|Super Deluxe|Parental Advisory|Explicit|Album Version|Single Version|Standard Version|\d+)|-\s*(?:Remaster|Album|Single|Standard Version|\d+))\s*.*$/i;
 
 		// Replace the matched pattern at the end of the string with an empty string
 		return title.replace(pattern, '').trim();

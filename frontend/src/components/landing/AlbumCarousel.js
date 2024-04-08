@@ -86,8 +86,10 @@ function AlbumCarousel() {
         <div className="tracklist_box">
           <h2>Tracklist</h2>
           <ul>
-            {albums[flippedIndex].Tracks.map((track, index) => (
-              <li key={index}>{track}</li>
+            {albums[flippedIndex].tracklists[0].tracks.map((track, index) => (
+              <li key={index}>
+                {track.name} - {track.length}
+              </li>
             ))}
           </ul>
         </div>
