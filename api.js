@@ -196,12 +196,10 @@ exports.setApp = function (app, client)
 			// If Album is not in database
 			else
 			{
-				albumId = await searchAlbum(key, name).album._id;
+				albumId = (await searchAlbum(key, name)).album._id;
 			}
 
 			var index = await findUserAlbumIndex(userId, name);
-
-			console.log(index);
 
 			// If it isnt already a user album, add it
 			if (index === -1)
