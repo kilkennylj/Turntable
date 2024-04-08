@@ -739,6 +739,7 @@ exports.setApp = function (app, client)
 				params:
 				{
 					method: 'ALBUM.search',
+					limit: 5,
 					album: search,
 					api_key: key,
 					format: 'json'
