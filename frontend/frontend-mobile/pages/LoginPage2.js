@@ -110,6 +110,7 @@ const LoginPage = ({navigation}) => {
     setIsRegistering(!isRegistering);
   };
 
+
   return (
     <ImageBackground
       source={{ uri: 'https://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gifhttps://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gif' }}

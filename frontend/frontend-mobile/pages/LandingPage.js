@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, FlatList, ScrollView, TouchableOpacity, Button } from 'react-native';
-import { Header } from 'react-native-elements';
 
 
 
-
-const LandingPage = ({ navigation }) => {
-  // const { jwt } = route.params;
+const LandingPage = ({ navigation, route }) => {
+  const { jwt } = route.params;
 
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
@@ -18,29 +16,30 @@ const LandingPage = ({ navigation }) => {
   const [albums, setAlbums] = useState([]);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newalbumdata, setNewAlbumData] = useState({ name, year, genres, rating, tracks, length, cover });
 
   const handleAddAlbum = () => {
-    const newAlbum = { name, year, genres, rating, tracks, length, cover };
-    setAlbums([...albums, newAlbum]);
-    clearInputFields();
+    const albumData = SearchAlbum();
+    setNewAlbumData(albumData);
+    console.log('\n\n\nalbum artist', albumData.year);
   };
 
   const clearInputFields = () => {
-    setName('');
-    setYear('');
-    setGenres([]);
-    setRating('');
-    setTracks([]);
-    setLength([]);
-    setCover('');
+    setName(newalbumdata.name);
+    setYear(newalbumdata.year);
+    setGenres(newalbumdata.genres);
+    setRating(newalbumdata.rating);
+    setTracks(newalbumdata.tracks);
+    setLength(newalbumdata.length);
+    setCover(newalbumdata.cover);
   };
 
-  const searchAlbum = async () => {
-    console.log("Trying to send data");
+  const SearchUserAlbum = async () => {
+    console.log("Trying to send data", searchQuery, jwt);
     try {
       const data = {
-        userId: '65d91cfbf69237517bfc711',
-        search: searchQuery, // Using search query
+        userId: '65d91cfbf69237517bfc7118',
+        search: searchQuery,
         jwtToken: jwt,
       };
 
@@ -58,19 +57,95 @@ const LandingPage = ({ navigation }) => {
       }
 
       const responseData = await response.json();
-      console.log('Response:', responseData);
+      //console.log('Number Of albums: ', responseData.length);
+      const ArtistName = responseData;
+      console.log('Response:', '\n\n\n\n', ArtistName[0].name);
+
       // Update albums state with search results
-      setAlbums(responseData.albums);
+      //setAlbums(responseData.accessToken);
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
+  const UpdateUserRating = async () => {
+    console.log("Trying to send data", searchQuery, jwt);
+    try {
+      const data = {
+        userId: '65d91cfbf69237517bfc7118',
+        name: searchQuery,
+        rating: 5,
+        jwtToken: jwt,
+      };
+
+      const response = await fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/updateuserrating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, text: ${text}`);
+      }
+
+      const responseData = await response.json();
+      //console.log('Number Of albums: ', responseData.length);
+      const ArtistName = responseData;
+      console.log('Response:', ArtistName);
+
+      // Update albums state with search results
+      //setAlbums(responseData.accessToken);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const SearchAlbum = async () => {
+    console.log("Trying to send data", searchQuery, jwt);
+    try {
+      const data = {
+        search: searchQuery,
+        jwtToken: jwt,
+      };
+
+      const response = await fetch('https://turntable-d8f41b9ae77d.herokuapp.com/api/searchalbum', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, text: ${text}`);
+      }
+
+      const responseData = await response.json();
+      //console.log('Number Of albums: ', responseData.length);
+      // const ArtistName = responseData;
+      // console.log('Response:', ArtistName);
+      // return ArtistName;
+      // Update albums state with the response data
+      setAlbums([responseData.results]);
+
+      // Update albums state with search results
+      //setAlbums(responseData.accessToken);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+
   const addAlbum = () => {
+
     const data = {
 
-      userId: '65d91cfbf69237517bfc711',
-      title: searchQuery,
+      userId: '65d91cfbf69237517bfc7118',
+      name: searchQuery,
       jwtToken: jwt,
     };
 
@@ -90,6 +165,7 @@ const LandingPage = ({ navigation }) => {
         } else {
           console.log('Album added:', data);
           setMessage('Album has been added');
+          handleAddAlbum();
         }
       })
       .catch(error => {
@@ -97,6 +173,7 @@ const LandingPage = ({ navigation }) => {
         setMessage('Error adding album. Please try again.');
       });
   };
+
   const handleAlbumPress = (album) => {
     setName(album.name);
     setYear(album.year);
@@ -108,26 +185,55 @@ const LandingPage = ({ navigation }) => {
     console.log('Clicked on album:', album);
   };
 
-  const renderAlbumCover = ({ item }) => (
-    <TouchableOpacity onPress={() => handleAlbumPress(item)}>
+
+
+
+  // const renderAlbumCover = ({ item }) => (
+  //   <TouchableOpacity onPress={() => handleAlbumPress(item)}>
+  //     <View style={styles.albumContainer}>
+  //       <Text style={styles.albumTitle}>{item.name}</Text>
+  //       <Image source={{ uri: item.cover }} style={styles.albumCoverImage} />
+  //     </View>
+  //   </TouchableOpacity>
+  // );
+
+  const renderAlbumCover = ({ album }) => (
+    <TouchableOpacity onPress={() => handleAlbumPress(album)}>
       <View style={styles.albumContainer}>
-        <Text style={styles.albumTitle}>{item.name}</Text>
-        <Image source={{ uri: item.cover }} style={styles.albumCoverImage} />
+        <Image source={{ uri: album.Cover }} style={styles.albumCoverImage} />
       </View>
     </TouchableOpacity>
   );
 
+
+
   return (
     <View style={styles.container}>
-
       <FlatList
         data={albums}
-        renderItem={renderAlbumCover}
-        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item: album }) => renderAlbumCover({ album })}
+        keyExtractor={(album, index) => index.toString()}
         horizontal
         contentContainerStyle={styles.scrollViewContainer}
       />
       <ScrollView style={styles.textContainer}>
+        <View>
+          {albums.map((album, index) => (
+            <View key={index}>
+              <Text>Album Information:</Text>
+              <Text>Name: {album.Name}</Text>
+              <Text>Artist: {album.Artist}</Text>
+              <Text>Year: {album.Year}</Text>
+              <Text>Tags: {album.Tags.join(', ')}</Text>
+              <Text>Tracks:</Text>
+              <View>
+                {album.Tracks.map((track, index) => (
+                  <Text key={index}>{track}</Text>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -136,26 +242,18 @@ const LandingPage = ({ navigation }) => {
             onChangeText={setSearchQuery}
           />
           <View style={styles.buttonContainer}>
-            <Button title="Search" onPress={searchAlbum} color="grey" />
+            <Button title="Search" onPress={SearchAlbum} color="grey" />
             <View style={styles.gap} />
-            <Button title="Add" onPress={handleAddAlbum} color="grey" />
+            <Button title="Add" onPress={addAlbum} color="grey" />
           </View>
-        </View>
-        <Text>Name: {name}</Text>
-        <Text>Year: {year}</Text>
-        <Text>Genres: {genres.join(', ')}</Text>
-        <Text>Rating: {rating}</Text>
-        <Text>Tracks: {tracks.join(', ')}</Text>
-        <Text>Length: {length.join(', ')}</Text>
-        <Text>Cover: {cover}</Text>
 
+        </View>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#6C6C6C',
@@ -166,8 +264,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 10,
-
-
   },
   searchInput: {
     flex: 1,
@@ -178,20 +274,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   scrollViewContainer: {
-    paddingHorizontal: 5,
-    paddingVertical: 5,
+    paddingTop: 20,
+    paddingBottom: 40,
     backgroundColor: '#6C6C6C',
     height: 500,
-
   },
   albumContainer: {
     marginHorizontal: 10,
     alignItems: 'center',
     backgroundColor: 'red',
     borderRadius: 10,
-    padding: 10,
-    height: '99%',
-
+    overflow: 'hidden',
+    height: '100%',
   },
   albumTitle: {
     fontSize: 16,
@@ -201,23 +295,16 @@ const styles = StyleSheet.create({
   albumCoverImage: {
     width: 450,
     height: 450,
-
   },
   textContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
     backgroundColor: '#C0C0C0',
-
-  },
-  buttonContainer: {
-    backgroundColor: '#C0C0C0',
-    borderColor: 'gray',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-
   },
   gap: {
     width: 10, // Adjust the gap size as needed
