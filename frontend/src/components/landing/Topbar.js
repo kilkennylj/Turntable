@@ -12,7 +12,7 @@ const Topbar = ({ firstName, onLogout }) => {
    
     var _ud = localStorage.getItem('user_data');
     var ud = JSON.parse(_ud);
-    var firstName = ud.firstName;
+    firstName = ud.firstName;
 
     const doLogout = event => 
     {
