@@ -16,13 +16,8 @@ const LandingPage = () => {
     const { searchAlbums } = AlbumFunctions();
 
     const handleSearch = (query) => {
-        searchAlbums(query)
-            .then((data) => {
-                setSearchResults(data.results);
-            })
-            .catch((error) => {
-                console.error('Error searching albums:', error);
-            });
+        let albums = searchAlbums(query);
+        setSearchResults(albums);
     };
 
     const handleDelete = (thisCard) => {

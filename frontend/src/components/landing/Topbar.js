@@ -9,8 +9,10 @@ const Topbar = ({ firstName, onLogout }) => {
     var firstName = ud.firstName;
     var lastName = ud.lastName;
     */
-
-    var firstName = 'Joe';
+   
+    var _ud = localStorage.getItem('user_data');
+    var ud = JSON.parse(_ud);
+    firstName = ud.firstName;
 
     const doLogout = event => 
     {

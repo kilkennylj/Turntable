@@ -196,7 +196,7 @@ exports.setApp = function (app, client)
 			// If Album is not in database
 			else
 			{
-				albumId = await searchAlbum(key, name).album._id;
+				albumId = (await searchAlbum(key, name)).album._id;
 			}
 
 			var index = await findUserAlbumIndex(userId, name);
@@ -848,6 +848,7 @@ exports.setApp = function (app, client)
 				params:
 				{
 					method: 'ALBUM.search',
+					limit: 5,
 					album: search,
 					api_key: key,
 					format: 'json'
