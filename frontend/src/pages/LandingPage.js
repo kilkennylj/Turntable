@@ -20,9 +20,9 @@ const LandingPage = () => {
         setSearchResults(albums);
     };
 
-    const handleDelete = (albumName) => {
-        deleteAlbum(albumName);
-        handleSearch("");
+    const handleDelete = async (albumName) => {
+        let albums = await deleteAlbum(albumName);
+        setSearchResults(albums);
     };
 
     return (
