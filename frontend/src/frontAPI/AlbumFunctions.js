@@ -101,8 +101,10 @@ function AlbumFunctions() {
         fetchAlbumsFromAPI();
     }, []);
 
-    const searchAlbums = async (query) => {
-        try {
+    const addAlbums = async (query) =>
+    {   
+        try 
+        {
             const userData = JSON.parse(localStorage.getItem('user_data'));
 
             if (!userData || !userData.id) {
@@ -127,6 +129,35 @@ function AlbumFunctions() {
 
             const obj_search = {userId: userData.id, search: query, jwtToken: userData.jwtToken};
             const js_search = JSON.stringify(obj_search);
+
+            setLoading(false);
+
+            return js_search;
+        }
+        catch (error) 
+        {
+            setLoading(false);
+            console.error('Error searching albums:', error);
+            return { error: 'Error adding album' };
+        }
+    };
+
+    const searchAlbums = async (query) => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+
+            if (!userData || !userData.id) {
+                throw new Error('User data not found');
+            }
+
+            setLoading(true);
+
+            const js_search = await addAlbums(query);
+
+            if (js_search.error)
+            {
+                throw new Error(js_search.error);
+            }
 
             const search_response = await fetch(bp.buildPath("api/searchuseralbum"), {
                 method: 'POST',

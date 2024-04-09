@@ -22,6 +22,7 @@ const LandingPage = () => {
 
     const handleDelete = (albumName) => {
         deleteAlbum(albumName);
+        handleSearch("");
     };
 
     return (
