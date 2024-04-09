@@ -13,15 +13,16 @@ const LandingPage = () => {
     }, []);
 
     const [searchResults, setSearchResults] = useState([]);
-    const { searchAlbums } = AlbumFunctions();
+    const { searchAlbums, deleteAlbum } = AlbumFunctions();
 
     const handleSearch = (query) => {
         let albums = searchAlbums(query);
         setSearchResults(albums);
     };
 
-    const handleDelete = (thisCard) => {
-        console.log("Deleting...");
+    const handleDelete = (albumName) => {
+        deleteAlbum(albumName);
+        // Deletes successfully, but then the page goes blank.
     };
 
     return (

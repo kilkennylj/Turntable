@@ -6,7 +6,7 @@ import "../../styles/AlbumCarousel.css";
 import AlbumFunctions from "../../frontAPI/AlbumFunctions";
 
 function AlbumCarousel() {
-  const { albums, loading, handleDelete } = AlbumFunctions();
+  const { albums, loading, deleteAlbum } = AlbumFunctions();
   const [flippedIndex, setFlippedIndex] = useState(-1);
   const [showTracklist, setShowTracklist] = useState(false);
   const [slidesToShow, setSlidesToShow] = useState(3);
@@ -42,7 +42,7 @@ function AlbumCarousel() {
           <p className="tags">{album.albumTags.join(", ")}</p>
           {/* Review solution goes here */}
           <div className="delete_div">
-            <button className="delete_button" onClick={() => handleDelete()}>X</button>
+            <button className="delete_button" onClick={() => deleteAlbum(album.albumName)}>X</button>
           </div>
         </div>
       );

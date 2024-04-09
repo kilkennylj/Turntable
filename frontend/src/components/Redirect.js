@@ -1,7 +1,7 @@
 // FOR DEMONSTRATION PURPOSES ONLY - DELETE AFTER USE - REPLACE WITH <LINK> ELEMENT FROM REACT ROUTER
 export function RedirectToLogin()
 {
-    window.location.href = './login';
+    window.location.href = './';
 }
 
 export function RedirectToRegister()

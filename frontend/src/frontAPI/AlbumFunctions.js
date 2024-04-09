@@ -117,7 +117,6 @@ function AlbumFunctions() {
 
             const obj_add = {userId: userData.id, name: query, jwtToken: userData.jwtToken };
             const js_add = JSON.stringify(obj_add);
-            console.log(js_add);
 
             setLoading(true);
             const add_response = await fetch(bp.buildPath('api/adduseralbum'), {
@@ -176,15 +175,43 @@ function AlbumFunctions() {
     };
 
 
-    const handleDelete = (index) => {
+    const deleteAlbum = async (query) =>
+    {
         // Handle deletion of album
         // Update albums array accordingly
-        const updatedAlbums = [...albums];
-        updatedAlbums.splice(index, 1);
-        setAlbums(updatedAlbums);
+        try
+        {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+
+            if (!userData || !userData.id)
+            {
+                throw new Error('User data not found');
+            }
+
+            console.log(query);
+
+            const obj_add = {userId: userData.id, name: query, jwtToken: userData.jwtToken };
+            const js_add = JSON.stringify(obj_add);
+
+            setLoading(true);
+
+            const deleteRes = await fetch(bp.buildPath('api/deleteuseralbum'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: js_add
+            });
+        }
+
+        catch(e)
+        {
+            console.log(e);
+            setLoading(false);
+        }
     };
 
-    return { albums, loading, searchAlbums, handleDelete };
+    return { albums, loading, searchAlbums, deleteAlbum };
 }
 
 export default AlbumFunctions;
