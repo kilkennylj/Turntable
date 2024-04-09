@@ -1,107 +1,71 @@
 import React from "react";
-import { View, Text, ImageBackground, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  ImageBackground,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from "react-native";
 
 function SearchPage({ navigation, route }) {
   const { album } = route.params;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#6C6C6C",
-      }}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.albumContainer}>
         <Image source={{ uri: album.Cover }} style={styles.albumCoverImage} />
       </View>
 
-      <View>
-        <Text>Artist: {album.Artist}</Text>
-        <Text>Year: {album.Year}</Text>
-        <Text>Length: {album.Length.join(", ")}</Text>
-        <Text>Name: {album.Name}</Text>
-        <Text>Tags: {album.Tags.join(", ")}</Text>
-        <Text>Tracks: {album.Tracks.join(", ")}</Text>
+      <View style={styles.textContainer}>
+        <Text style={[styles.centeredText, { color: "red", fontSize: 30 }]}>
+          {album.Name}
+        </Text>
+        <Text style={{ color: "black", fontSize: 20 }}>{album.Artist}</Text>
+        <Text style={{ color: "black", fontSize: 20 }}>{album.Year}</Text>
+
+        <Text style={{ color: "black" }}>Tags: {album.Tags.join(", ")}</Text>
+        {album.Tracks.map((track, index) => (
+          <Text key={index} style={{ color: "black" }}>
+            Song: {track} - {album.Length[index]} Sec
+          </Text>
+        ))}
       </View>
-    </View>
+    </ScrollView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#6C6C6C",
-  },
-  searchContainer: {
-    flexDirection: "row",
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginRight: 10,
-    paddingHorizontal: 10,
-  },
-  scrollViewContainer: {
-    paddingTop: 20,
-    paddingBottom: 80,
     backgroundColor: "#6C6C6C",
-    height: 500,
+    paddingTop: 20,
   },
   albumContainer: {
-    marginHorizontal: 0,
     alignItems: "center",
     backgroundColor: "transparent",
     borderRadius: 10,
     overflow: "hidden",
-    height: "50%",
     marginBottom: 15,
   },
-  albumTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
+  // other styles...
   albumCoverImage: {
     width: 400,
     height: 400,
+    borderRadius: 10, // this makes the image corners rounded
   },
   textContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
     backgroundColor: "#C0C0C0",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexGrow: 1, // Allow the content to grow vertically within the ScrollView
     alignItems: "center",
-    backgroundColor: "red",
-  },
-  gap: {
-    width: 10, // Adjust the gap size as needed
-  },
-
-  banner: {
-    backgroundColor: "#6C6C6C",
-    padding: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bannerText: {
-    fontSize: 30,
-    fontFamily: "Hendangan",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "red",
   },
   centeredText: {
     textAlign: "center",
   },
 });
+
 export default SearchPage;

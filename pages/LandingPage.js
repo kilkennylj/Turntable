@@ -11,6 +11,7 @@ import {
   Button,
   Alert,
   SafeAreaView,
+  KeyboardAvoidingView,
 } from "react-native";
 
 class Album {
@@ -58,7 +59,8 @@ const LandingPage = ({ navigation, route }) => {
     "https://raw.githubusercontent.com/tranhonghan/images/main/star_filled.png";
   const starImageCorner =
     "https://raw.githubusercontent.com/tranhonghan/images/main/star_corner.png";
-
+  // https://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gifhttps://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gif
+  //https://raw.githubusercontent.com/tranhonghan/images/main/star_corner.png
   const CustomRatingBar = () => {
     return (
       <View style={styles.customRatingBarStyle}>
@@ -357,115 +359,94 @@ const LandingPage = ({ navigation, route }) => {
 
   const handleAlbumPress = (album) => {
     setSelectedAlbum(album);
+    navigation.navigate("searchpage", { album });
     console.log("Clicked on album:", album);
   };
 
   const renderAlbumCover = ({ album }) => (
-    <View>
-      <View
-        style={{
-          width: 200,
-          height: 50,
-          overflow: "hidden",
-          centeredText: true,
-          marginHorizontal: 10,
-          marginBottom: 10,
-          marginLeft: 10,
-        }}
-      >
-        <Button
-          title="Delete"
-          color="red"
-          Alert="Are you sure you want to delete this album?"
-          onPress={() => DeleteUserAlbum(album)}
-        />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <View>
+        <CustomRatingBar />
+        <View
+          style={{
+            width: 200,
+            height: 50,
+            overflow: "hidden",
+            centeredText: true,
+            marginHorizontal: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+          }}
+        ></View>
+
+        <TouchableOpacity onPress={() => handleAlbumPress(album)}>
+          <View style={styles.albumContainer}>
+            <Image
+              source={{ uri: album.Cover }}
+              style={styles.albumCoverImage}
+            />
+            <Button
+              style={styles.buttonContainer}
+              title="Delete"
+              color="red"
+              onPress={() => DeleteUserAlbum(album)}
+            />
+          </View>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity onPress={() => handleAlbumPress(album)}>
-        <View style={styles.albumContainer}>
-          <Image source={{ uri: album.Cover }} style={styles.albumCoverImage} />
-        </View>
-      </TouchableOpacity>
-      <CustomRatingBar />
-    </View>
+    </KeyboardAvoidingView>
   );
-
-  const renderAlbumDetails = () => {
-    if (selectedAlbum) {
-      return (
-        <View style={styles.albumDetailsContainer}>
-          <Text>Name: {selectedAlbum.Name}</Text>
-          <Text>Artist: {selectedAlbum.Artist}</Text>
-          <Text>Year: {selectedAlbum.Year}</Text>
-          <Text>Tags: {selectedAlbum.Tags.join(", ")}</Text>
-          <Text>Tracks:</Text>
-          {selectedAlbum.Tracks.map((track, index) => (
-            <Text key={index}>{track}</Text>
-          ))}
-        </View>
-      );
-    }
-    return null;
-  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Turntable</Text>
-      </View>
-      <FlatList
-        ref={flatListRef}
-        data={albumsofuser}
-        renderItem={({ item: album }) => (
-          <TouchableOpacity onPress={() => handleAlbumPress(album)}>
-            {renderAlbumCover({ album })}
-          </TouchableOpacity>
-        )}
-        keyExtractor={(album, index) => index.toString()}
-        horizontal
-        contentContainerStyle={styles.scrollViewContainer}
-      />
-      <ScrollView style={styles.textContainer}>
-        {selectedAlbum && (
-          <View>
-            <Text style={styles.centeredText}>Album Information:</Text>
-            <Text>Name: {selectedAlbum.Name}</Text>
-            <Text>Artist: {selectedAlbum.Artist}</Text>
-            <Text>Year: {selectedAlbum.Year}</Text>
-            <Text>Tags: {selectedAlbum.Tags.join(", ")}</Text>
-            <Text>Tracks:</Text>
-          </View>
-        )}
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search albums"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Search" onPress={SearchUserAlbum} color="grey" />
-
-            <View style={styles.gap} />
-            <Button title="Add" onPress={addAlbum} color="grey" />
-          </View>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <View style={styles.container}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>Turntable</Text>
         </View>
-      </ScrollView>
-      <Button
-        title="Search Turntable"
-        onPress={() => {
-          //const album = SearchAlbum();
-          SearchAlbum();
-          searching = true;
-          //navigation.navigate("searchpage", { album: hardcodedAlbum });
-        }}
-        color="RED"
-      />
-    </View>
+        <TextInput
+          style={styles.searchInput2}
+          placeholder="Search in your albums"
+          onChangeText={(text) => setSearchQuery(text)}
+          value={searchQuery}
+        />
+        <View style={styles.gap2} />
+        <Button
+          title="Search New Albums"
+          onPress={() => {
+            SearchAlbum();
+            searching = true;
+          }}
+          color="#A9A9A9"
+        />
+        <View style={styles.gap2} />
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Search Existing album"
+            onPress={() => {
+              SearchUserAlbum();
+            }}
+            color="#A9A9A9"
+          />
+          <View style={styles.gap} />
+          <Button title="Add" onPress={addAlbum} color="blue" />
+        </View>
+
+        <FlatList
+          ref={flatListRef}
+          data={albumsofuser}
+          renderItem={({ item: album }) => (
+            <TouchableOpacity onPress={() => handleAlbumPress(album)}>
+              {renderAlbumCover({ album })}
+            </TouchableOpacity>
+          )}
+          keyExtractor={(album, index) => index.toString()}
+          horizontal
+          contentContainerStyle={styles.scrollViewContainer}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -481,23 +462,36 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    borderColor: "gray",
+    borderColor: "white",
     borderWidth: 1,
     marginRight: 10,
+    marginLeft: 10,
     paddingHorizontal: 10,
+    color: "white",
+  },
+  searchInput2: {
+    flex: 1,
+    height: 20,
+    borderColor: "white",
+    borderWidth: 1,
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom: 0,
+    paddingHorizontal: 10,
+    color: "white",
   },
   scrollViewContainer: {
     paddingTop: 20,
-    paddingBottom: 80,
+    paddingBottom: 0,
     backgroundColor: "transparent",
     height: 500,
   },
   albumContainer: {
     marginHorizontal: 10,
     alignItems: "center",
-    backgroundColor: "#C0C0C0",
+    backgroundColor: "transparent",
     borderRadius: 10,
-    overflow: "hidden",
+    overflow: "",
     height: "100%",
     marginBottom: 0,
   },
@@ -506,9 +500,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
+  gap2: {
+    height: 10,
+  },
   albumCoverImage: {
-    width: 400,
-    height: 400,
+    width: 300,
+    height: 300,
   },
   textContainer: {
     paddingHorizontal: 20,
@@ -519,7 +516,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "red",
+    backgroundColor: "transparent",
+    marginBottom: 0,
+    marginHorizontal: 20,
+    marginLeft: 1,
   },
   gap: {
     width: 10, // Adjust the gap size as needed
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   customRatingBarStyle: {
     justifyContent: "center",
     flexDirection: "row",
-    marginTop: 30,
+    marginTop: 20,
   },
 
   starImageStyle: {
