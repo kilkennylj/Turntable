@@ -113,7 +113,7 @@ const LoginPage = ({navigation}) => {
   return (
     <ImageBackground
       source={{ uri: 'https://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gifhttps://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gif' }}
-      style={{ ...styles.backgroundImage, backgroundColor: 'black' }}
+      style={{ ...styles.backgroundImage, backgroundColor: '#C0C0C0' }}
       resizeMode="cover"
     >
       <View style={styles.container}>
