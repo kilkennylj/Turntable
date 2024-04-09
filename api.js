@@ -387,7 +387,7 @@ exports.setApp = function (app, client)
 	app.post('/api/searchuseralbum', async(req, res, next) =>
 	{
 		// incoming: userId, search, jwtToken
-		// outgoing: albums {name, artist, year, tags, tracks, length, cover }, error, jwtToken
+		// outgoing: albums {name, artist, year, tags, tracks, length, cover, rating }, error, jwtToken
 
 		const { userId, search, jwtToken } = req.body;
 
@@ -426,6 +426,7 @@ exports.setApp = function (app, client)
 			for (var i = 0; i < albumIds.length; i++)
 			{
 				results[i] = await db.collection("Albums").findOne({ _id: new ObjectId(albumIds[i])});
+				results[i].rating = user.Ratings[i];
 			}
 		}
 
@@ -456,7 +457,9 @@ exports.setApp = function (app, client)
 					{
 						if (user.Albums[i].equals(albumIds[j]))
 						{
-							results.push(searchRes[j]);
+							var temp = searchRes[j];
+							temp.Rating = user.Ratings[i];
+							results.push(temp);
 						}
 					}
 				}
