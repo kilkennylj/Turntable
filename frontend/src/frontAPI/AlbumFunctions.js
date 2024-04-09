@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Album, Tracklist, Track } from "../models/Album";
-import decode from "jwt-decode";
 
 const getRandomPlaceholderCover = () => {
     const randomNumber = Math.random();
@@ -99,7 +98,7 @@ function AlbumFunctions() {
         };
 
         fetchAlbumsFromAPI();
-    }, [albums]);
+    }, [albums, bp]);
 
     const addAlbums = async (query) => {
         try {
@@ -195,14 +194,11 @@ function AlbumFunctions() {
         }
     };
 
-
     const deleteAlbum = async (query) => {
         // Handle deletion of album
         // Update albums array accordingly
         try {
             const userData = JSON.parse(localStorage.getItem('user_data'));
-
-            console.log(query);
 
             if (!userData || !userData.id) {
                 throw new Error('User data not found');
@@ -221,18 +217,14 @@ function AlbumFunctions() {
                 body: js_add
             });
 
-            console.log(deleteRes);
-
             if (!deleteRes.ok) {
                 throw new Error('Failed to delete album');
             }
 
             const albumIndex = albums.findIndex(album => album.albumName === query);
 
-            console.log(albumIndex);
             const updatedAlbums = [...albums.slice(0, albumIndex), ...albums.slice(albumIndex + 1)];
             setAlbums(updatedAlbums);
-            console.log("Updated albums: ", updatedAlbums);
 
             setLoading(false);
 

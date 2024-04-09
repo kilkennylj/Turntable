@@ -19,7 +19,7 @@ function AlbumCarousel({ onDelete }) {
     if (albums.length > 0) {
       setSlidesToShow(Math.min(albums.length, 3));
     }
-  }, []);
+  }, [albums.length]);
 
   const handleCardClick = (index) => {
     if (index === flippedIndex) {
@@ -58,12 +58,15 @@ function AlbumCarousel({ onDelete }) {
 
   const settings = {
     customPaging: function (i) {
+      if (!albums[i]) {
+        i = i - 1;
+      }
       const album = albums[i];
-        return (
-          <a>
-            <img className="carousel_thumbnail" src={album.coverImage} alt="Album cover" />
-          </a>
-        );
+      return (
+        <a>
+          <img className="carousel_thumbnail" src={album.coverImage} alt="Album cover" />
+        </a>
+      );
     },
     dots: true,
     infinite: true,
@@ -73,7 +76,7 @@ function AlbumCarousel({ onDelete }) {
     speed: 500,
     slidesToShow: slidesToShow,
   };
-
+  
   if (loading) {
     return <p>Loading...</p>;
   }
