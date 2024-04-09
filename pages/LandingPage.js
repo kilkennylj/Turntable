@@ -15,7 +15,7 @@ import {
 } from "react-native";
 
 class Album {
-  constructor(Artist, Year, Cover, Length, Name, Tags, Tracks) {
+  constructor(Artist, Year, Cover, Length, Name, Tags, Tracks, rating) {
     this.Artist = Artist;
     this.Year = Year;
     this.Cover = Cover;
@@ -23,6 +23,7 @@ class Album {
     this.Name = Name;
     this.Tags = Tags;
     this.Tracks = Tracks;
+    this.rating = rating;
   }
 }
 
@@ -51,6 +52,9 @@ const LandingPage = ({ navigation, route }) => {
       ...prevRatings,
       [albumId]: rating, // Set the rating for the specific album
     }));
+    console.log("Rating:", rating);
+    if (rating != -1)
+      UpdateUserRating({ searchQuery: albumId, rating: rating });
   };
 
   const flatListRef = React.useRef();
@@ -61,7 +65,8 @@ const LandingPage = ({ navigation, route }) => {
     "https://raw.githubusercontent.com/tranhonghan/images/main/star_corner.png";
   // https://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gifhttps://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gif
   //https://raw.githubusercontent.com/tranhonghan/images/main/star_corner.png
-  const CustomRatingBar = () => {
+  const CustomRatingBar = ({ albumId }) => {
+    const albumRating = ratings[albumId] || 0;
     return (
       <View style={styles.customRatingBarStyle}>
         {maxRating.map((item, key) => {
@@ -69,12 +74,15 @@ const LandingPage = ({ navigation, route }) => {
             <TouchableOpacity
               activeOpacity={0.7}
               key={item}
-              onPress={() => setdefaultRating()}
+              onPress={() => {
+                handleRating(albumId, item);
+                UpdateUserRating(albumRating);
+              }}
             >
               <Image
                 style={styles.starImageStyle}
                 source={
-                  item <= defaultRating
+                  item <= albumRating
                     ? { uri: starImageFilled }
                     : { uri: starImageCorner }
                 }
@@ -141,8 +149,24 @@ const LandingPage = ({ navigation, route }) => {
 
       if (justloged === true) {
         const updatedAlbums = responseData.albums.map((albumData) => {
-          const { Artist, Year, Cover, Length, Name, Tags, Tracks } = albumData;
-          return new Album(Artist, Year, Cover, Length, Name, Tags, Tracks);
+          if (albumData.rating != -1)
+            handleRating(albumData.Name, albumData.rating);
+          handleRating({
+            albumId: responseData.albums.Name,
+            rating: responseData.albums.rating,
+          });
+          const { Artist, Year, Cover, Length, Name, Tags, Tracks, rating } =
+            albumData;
+          return new Album(
+            Artist,
+            Year,
+            Cover,
+            Length,
+            Name,
+            Tags,
+            Tracks,
+            rating
+          );
         });
 
         // Use a functional update to correctly incorporate previous state
@@ -203,13 +227,13 @@ const LandingPage = ({ navigation, route }) => {
   };
   if (justloged === true) SearchUserAlbum();
 
-  const UpdateUserRating = async () => {
-    console.log("Trying to send data", searchQuery, jwt);
+  const UpdateUserRating = async ({ searchQuery, rating }) => {
+    console.log("Trying to rate", searchQuery, rating);
     try {
       const data = {
         userId: "65d91cfbf69237517bfc7118",
         name: searchQuery,
-        rating: 5,
+        rating: rating,
         jwtToken: jwt,
       };
 
@@ -366,7 +390,7 @@ const LandingPage = ({ navigation, route }) => {
   const renderAlbumCover = ({ album }) => (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View>
-        <CustomRatingBar />
+        <CustomRatingBar albumId={album.Name} />
         <View
           style={{
             width: 200,
