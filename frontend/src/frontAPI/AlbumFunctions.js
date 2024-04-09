@@ -99,7 +99,7 @@ function AlbumFunctions() {
         };
 
         fetchAlbumsFromAPI();
-    }, []);
+    }, [albums]);
 
     const addAlbums = async (query) =>
     {   

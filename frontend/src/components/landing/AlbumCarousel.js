@@ -19,7 +19,7 @@ function AlbumCarousel() {
     if (albums.length > 0) {
       setSlidesToShow(Math.min(albums.length, 3));
     }
-  }, [albums]);
+  }, []);
 
   const handleCardClick = (index) => {
     if (index === flippedIndex) {
