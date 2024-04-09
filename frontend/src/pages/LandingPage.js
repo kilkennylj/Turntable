@@ -22,7 +22,6 @@ const LandingPage = () => {
 
     const handleDelete = (albumName) => {
         deleteAlbum(albumName);
-        // Deletes successfully, but then the page goes blank.
     };
 
     return (

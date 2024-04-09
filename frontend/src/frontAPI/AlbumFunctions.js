@@ -57,11 +57,7 @@ function AlbumFunctions() {
 
                 const data = await response.json();
 
-                console.log(data);
-
                 let formattedAlbums = [];
-
-                console.log(data.albums.length);
 
                 if (data.albums.length === 0) {
                     // If user has no albums, create a template album
@@ -73,9 +69,7 @@ function AlbumFunctions() {
                         new Tracklist( [new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
                         getRandomPlaceholderCover()
                     );
-                    console.log(templateAlbum);
                     formattedAlbums = [templateAlbum];
-                    console.log(formattedAlbums);
                 } else {
                     formattedAlbums = data.albums.map(albumData => {
                         // Create tracks for the album
@@ -188,8 +182,6 @@ function AlbumFunctions() {
                 throw new Error('User data not found');
             }
 
-            console.log(query);
-
             const obj_add = {userId: userData.id, name: query, jwtToken: userData.jwtToken };
             const js_add = JSON.stringify(obj_add);
 
@@ -202,6 +194,8 @@ function AlbumFunctions() {
                 },
                 body: js_add
             });
+
+            setLoading(false);
         }
 
         catch(e)
