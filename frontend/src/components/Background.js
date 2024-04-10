@@ -8,7 +8,7 @@ import Ellipse5Svg from './Ellipse5SVG.js';
 function Background()
 {
     return(
-        <div>
+        <div class="max-sm:hidden">
             <div class="z-40 absolute">
                 <div class="flex justify-center items-center">
                     <div class="absolute animate-spinclock"><Ellipse1Svg /></div>

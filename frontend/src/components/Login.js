@@ -71,7 +71,7 @@ function Login()
 	
 	return(
 		<div class="flex justify-center items-center">
-			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8"></div>
+			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8 max-sm:border-none"></div>
 			<form class="z-[60] relative rounded-md px-12 pt-8 pb-8" onSubmit={doLogin}>
 				{/* Title text*/}
 				<div class="mt-20 mb-10 flex justify-center">

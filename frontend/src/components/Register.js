@@ -76,7 +76,7 @@ function Register()
 	
 	return(
 		<div class="flex justify-center items-center">
-			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8"></div>
+			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8 max-sm:border-none"></div>
 			<form class="z-[60] relative rounded-md px-12 pt-12 pb-8" onSubmit={doRegister}>
                 {/* First Name */}
                 <div class="mb-2">
