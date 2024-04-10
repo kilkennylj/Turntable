@@ -76,43 +76,43 @@ function Register()
 	
 	return(
 		<div class="w-screen h-screen flex justify-center items-center">
-			<form class="bg-gray-400 border border-black rounded px-12 pt-8 pb-8" onSubmit={doRegister}>
+			<form class="bg-gray-300 border border-black rounded-md px-12 pt-12 pb-8" onSubmit={doRegister}>
                 {/* First Name */}
                 <div class="mb-2">
-                    <label class="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">First Name</label>
-                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="text" id="firstName" ref={ (c) => firstName = c} /><br />
+                    <label class="block w-max text-white text-sm font-TWGsb">First Name</label>
+                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="text" id="firstName" ref={ (c) => firstName = c} /><br />
                 </div>
                 {/* Last Name */}
                 <div class="mb-2">
-                    <label class="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Last Name</label>
-                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="text" id="lastName" ref={ (c) => lastName = c} /><br />
+                    <label class="block w-max text-white text-sm font-TWGsb">Last Name</label>
+                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="text" id="lastName" ref={ (c) => lastName = c} /><br />
                 </div>
                 {/* Email  */}
                 <div class="mb-2">
-                    <label class="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Email</label>
-                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="email" id="email" ref={ (c) => email = c} /><br />
+                    <label class="block w-max text-white text-sm font-TWGsb">Email</label>
+                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="email" id="email" ref={ (c) => email = c} /><br />
                 </div>
                 {/* Username */}
                 <div class="mb-2">
-                    <label class="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Username</label>
-                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="text" id="loginName" ref={ (c) => loginName = c} /><br />
+                    <label class="block w-max text-white text-sm font-TWGsb">Username</label>
+                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="text" id="loginName" ref={ (c) => loginName = c} /><br />
                 </div>
                 {/* Password */}
                 <div class="mb-4">
-                    <label class="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Password</label>
-                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="password" id="loginPassword" ref={ (c) => loginPassword = c} /><br />
+                    <label class="block w-max text-white text-sm font-TWGsb">Password</label>
+                    <input class="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="password" id="loginPassword" ref={ (c) => loginPassword = c} /><br />
                 </div>
                 {/* Register Button */}
-                <div class="mb-2 md:flex md:justify-center">
-                    <input class=" w-32 h-10 bg-white rounded-3xl font-bold underline cursor-pointer font-['Lucida Sans Typewriter']" type="submit" id="loginButton" value = "Register" onClick={doRegister} />
+                <div class="mb-2 flex justify-center">
+                    <input class=" w-32 h-10 bg-white rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value="Register" onClick={doRegister} />
                 </div>
                 {/* Login to existing account subtext */}
-                <div class="mb-2 md:flex md:justify-center">
-                    <label class="pr-2">Already have an account?</label>
-                    <label class="underline cursor-pointer" onClick={RedirectToLogin}>Login</label>
+                <div class="mb-2 flex justify-center">
+                    <label class="pr-2 text-white text-xs font-TWGr">Already have an account?</label>
+                    <label class="underline cursor-pointer text-white text-xs font-TWGr" onClick={RedirectToLogin}>Login</label>
                 </div>
                 {/* Error message */}
-                <div class="md:flex md:justify-center">
+                <div class="flex justify-center">
                     <span id="loginResult">{message}</span>
                 </div>
 			</form>
