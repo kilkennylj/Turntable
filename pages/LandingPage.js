@@ -13,7 +13,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
 } from "react-native";
-
+import { jwtDecode } from "jwt-decode";
 class Album {
   constructor(Artist, Year, Cover, Length, Name, Tags, Tracks, rating) {
     this.Artist = Artist;
@@ -32,8 +32,10 @@ let justloged = true;
 let searching = false;
 
 const LandingPage = ({ navigation, route }) => {
-  const { jwt } = route.params;
-
+  const { jwt , userId} = route.params;
+  //console.log("User ID:", userId);
+  //const decodedtoken = jwtDecode(jwt);
+  console.log("Decoded token:", jwt);
   const [albums, setAlbums] = useState([]);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,9 +120,11 @@ const LandingPage = ({ navigation, route }) => {
   const SearchUserAlbum = async () => {
     needtocroll = true;
     console.log("Trying to send data", searchQuery, jwt);
+    //let decoded = jwtDecode(jwt);
+    //console.log("Decoded:", decoded);
     try {
       const data = {
-        userId: "65d91cfbf69237517bfc7118",
+        userId: userId,
         search: searchQuery,
         jwtToken: jwt,
       };
@@ -188,7 +192,7 @@ const LandingPage = ({ navigation, route }) => {
 
     try {
       const data = {
-        userId: "65d91cfbf69237517bfc7118",
+        ususerId: userId,
         name: album.Name,
         jwtToken: jwt,
       };
@@ -231,7 +235,7 @@ const LandingPage = ({ navigation, route }) => {
     console.log("Trying to rate", searchQuery, rating);
     try {
       const data = {
-        userId: "65d91cfbf69237517bfc7118",
+        userId: userId,
         name: searchQuery,
         rating: rating,
         jwtToken: jwt,
@@ -347,7 +351,7 @@ const LandingPage = ({ navigation, route }) => {
 
   const addAlbum = () => {
     const data = {
-      userId: "65d91cfbf69237517bfc7118",
+      userId: userId,
       name: searchQuery,
       jwtToken: jwt,
     };
@@ -363,7 +367,7 @@ const LandingPage = ({ navigation, route }) => {
     })
       .then((response) => response.json())
       .then((res) => {
-        Alert.alert("You  already have this album!, TRY ANOTHER ONE!");
+        
         if (res.error && res.error.length > 0) {
           setMessage("API Error: " + res.error);
         } else {
@@ -428,8 +432,9 @@ const LandingPage = ({ navigation, route }) => {
           <Text style={styles.bannerText}>Turntable</Text>
         </View>
         <TextInput
-          style={styles.searchInput2}
+          style={[styles.searchInput2, {color: "white"}]}
           placeholder="Search in your albums"
+          placeholderTextColor="white"
           onChangeText={(text) => setSearchQuery(text)}
           value={searchQuery}
         />
@@ -556,8 +561,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bannerText: {
-    fontSize: 40,
+    fontSize: 30,
     fontFamily: "Hendangan",
+    marginTop: 10,
     textAlign: "center",
     marginBottom: 20,
     color: "red",

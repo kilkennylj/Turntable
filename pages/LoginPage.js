@@ -8,8 +8,10 @@ import {
   ImageBackground,
 } from "react-native";
 import { useFonts } from "expo-font";
-//import { useHistory } from 'react-router-dom';
-var jwt;
+import  jwtDecode  from "jwt-decode";
+//import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 const LoginPage = ({ navigation }) => {
   console.log("App started");
 
@@ -29,10 +31,10 @@ const LoginPage = ({ navigation }) => {
   }
 
   const handleLogin = () => {
-    console.log("Logging in with:", email, password);
+    console.log("Logging in with:", username, password);
 
     const data = {
-      login: email,
+      login: username,
       password: password,
     };
 
@@ -53,10 +55,10 @@ const LoginPage = ({ navigation }) => {
         if (data.error) {
           alert(data.error);
         } else {
-          console.log("JWT Token:", data.accessToken);
+          
+          
 
-          // Pass the JWT token to the LandingPage component
-          navigation.navigate("LandingPage", { jwt: data.accessToken });
+          navigation.navigate("LandingPage", { jwt: data.accessToken, userId: data._id });
         }
       })
       .catch((error) => {
@@ -65,7 +67,7 @@ const LoginPage = ({ navigation }) => {
   };
 
   const handleRegister = () => {
-    console.log("Registering with:", firstName, lastName, email, password);
+    console.log("Registering with:", firstName, lastName, email, password, username);
 
     const Passwordshortmessage =
       "Password must be at least 8 characters long, and contain at least one number, one uppercase letter, one lowercase letter, and one special character.";
@@ -105,8 +107,10 @@ const LoginPage = ({ navigation }) => {
       lastName: lastName,
       email: email,
       password: password,
-      username: username,
+      login: username,
     };
+
+    console
 
     fetch("https://turntable-d8f41b9ae77d.herokuapp.com/api/register", {
       method: "POST",
@@ -116,7 +120,13 @@ const LoginPage = ({ navigation }) => {
       body: JSON.stringify(data),
     })
       .then((response) => response.json())
-      .then((data) => console.log(data))
+      .then((data) => {
+        console.log(data);
+        // If registration was successful, navigate back to the login page
+       
+          toggleRegister();
+        
+      })
       .catch((error) => {
         console.error("Error:", error);
       });
@@ -125,9 +135,11 @@ const LoginPage = ({ navigation }) => {
   const toggleRegister = () => {
     console.log("Toggling register");
     setIsRegistering(!isRegistering);
+    
   };
 
   return (
+    
     <ImageBackground
       source={{
         uri: "https://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gifhttps://media.giphy.com/media/pRWBFVZYNVe4vW1Waq/giphy.gif",
@@ -170,9 +182,9 @@ const LoginPage = ({ navigation }) => {
                     fontSize: 16,
                     color: "black",
                   }}
-                  placeholder="Username"
-                  value={username}
-                  onChangeText={setUsername}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </>
             )}
@@ -183,9 +195,9 @@ const LoginPage = ({ navigation }) => {
                 fontSize: 16,
                 color: "black",
               }}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
             />
             <TextInput
               style={{
@@ -220,6 +232,7 @@ const LoginPage = ({ navigation }) => {
         </View>
       </View>
     </ImageBackground>
+    
   );
 };
 

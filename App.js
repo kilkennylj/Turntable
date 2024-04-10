@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginPage from "./pages/LoginPage";
 import LandingPage from "./pages/LandingPage";
 import searchpage from "./pages/searchpage";
-
+console.error = () => {};
 const Stack = createStackNavigator();
 
 export default function App() {
