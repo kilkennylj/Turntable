@@ -80,7 +80,7 @@ function AlbumCarousel({ onDelete }) {
       }
       const album = albums[i];
       return (
-        <a>
+        <a href={album.link}>
           <img className="carousel_thumbnail" src={album.coverImage} alt="Album cover" />
         </a>
       );
