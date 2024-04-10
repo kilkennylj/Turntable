@@ -70,8 +70,9 @@ function Login()
 	};
 	
 	return(
-		<div class="w-screen h-screen bg-transparent flex justify-center items-center">
-			<form class="bg-gray-300 border border-white rounded-md px-12 pt-8 pb-8" onSubmit={doLogin}>
+		<div class="flex justify-center items-center">
+			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8"></div>
+			<form class="z-[60] relative rounded-md px-12 pt-8 pb-8" onSubmit={doLogin}>
 				{/* Title text*/}
 				<div class="mt-20 mb-10 flex justify-center">
 					<label class="w-56 h-20 text-red text-5xl font-normal font-Hendangan">Turntable</label>
@@ -92,7 +93,7 @@ function Login()
                 </div>
 				{/* Login Button */}
                 <div class="mb-2 flex justify-center">
-                    <input class="w-28 h-10 bg-white rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
+                    <input class="w-28 h-10 bg-white hover:bg-gray-50 rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
                 </div>
 				{/* Register a new account subtext */}
                 <div class="mb-2 flex justify-center">

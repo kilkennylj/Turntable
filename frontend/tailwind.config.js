@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      animation: {
+        'spinclock': 'spin 20s linear infinite',
+      },
       fontFamily: {
         Hendangan: ['Hendangan'],
         TWGb: ['twoweekendgo-bold'],

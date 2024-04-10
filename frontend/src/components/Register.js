@@ -75,8 +75,9 @@ function Register()
 	};
 	
 	return(
-		<div class="w-screen h-screen flex justify-center items-center">
-			<form class="bg-gray-300 border border-black rounded-md px-12 pt-12 pb-8" onSubmit={doRegister}>
+		<div class="flex justify-center items-center">
+			<div class="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8"></div>
+			<form class="z-[60] relative rounded-md px-12 pt-12 pb-8" onSubmit={doRegister}>
                 {/* First Name */}
                 <div class="mb-2">
                     <label class="block w-max text-white text-sm font-TWGsb">First Name</label>
@@ -104,7 +105,7 @@ function Register()
                 </div>
                 {/* Register Button */}
                 <div class="mb-2 flex justify-center">
-                    <input class=" w-32 h-10 bg-white rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value="Register" onClick={doRegister} />
+                    <input class=" w-32 h-10 bg-white hover:bg-gray-50 rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value="Register" onClick={doRegister} />
                 </div>
                 {/* Login to existing account subtext */}
                 <div class="mb-2 flex justify-center">
