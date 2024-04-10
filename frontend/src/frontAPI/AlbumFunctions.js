@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Album, Tracklist, Track } from "../models/Album";
 
 const getRandomPlaceholderCover = () => {
@@ -26,15 +26,17 @@ const getRandomPlaceholderCover = () => {
 function AlbumFunctions() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
-    const templateAlbum = new Album(
-        "Welcome to Turntable!",
-        "To get started, add one album by using",
-        "the search bar above.",
-        ["You can use this website to save albums you have listened to and review them."],
-        new Tracklist([new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
-        -2,
-        getRandomPlaceholderCover()
-    );
+    const templateAlbum = useMemo(() => {
+        return new Album(
+            "Welcome to Turntable!",
+            "To get started, add one album by",
+            "using the search bar above.",
+            ["You can use this website to save albums you have listened to and review them."],
+            new Tracklist([new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
+            -2,
+            getRandomPlaceholderCover()
+        );
+    }, []);
 
     var bp = require('./Path.js');
 
@@ -100,7 +102,7 @@ function AlbumFunctions() {
         };
 
         fetchAlbumsFromAPI();
-    }, [albums, bp]);
+    }, [templateAlbum, bp]);
 
     const addAlbums = async (query) => {
         try {
