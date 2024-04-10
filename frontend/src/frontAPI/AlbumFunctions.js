@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Album, Tracklist, Track } from "../models/Album";
-import decode from "jwt-decode";
 
 const getRandomPlaceholderCover = () => {
     const randomNumber = Math.random();
@@ -57,11 +56,7 @@ function AlbumFunctions() {
 
                 const data = await response.json();
 
-                console.log(data);
-
                 let formattedAlbums = [];
-
-                console.log(data.albums.length);
 
                 if (data.albums.length === 0) {
                     // If user has no albums, create a template album
@@ -70,12 +65,10 @@ function AlbumFunctions() {
                         "To get started, add one album by using",
                         "the search bar above.",
                         ["You can use this website to save albums you have listened to and review them."],
-                        new Tracklist( [new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
+                        new Tracklist([new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
                         getRandomPlaceholderCover()
                     );
-                    console.log(templateAlbum);
                     formattedAlbums = [templateAlbum];
-                    console.log(formattedAlbums);
                 } else {
                     formattedAlbums = data.albums.map(albumData => {
                         // Create tracks for the album
@@ -105,9 +98,9 @@ function AlbumFunctions() {
         };
 
         fetchAlbumsFromAPI();
-    }, []);
+    }, [albums, bp]);
 
-    const searchAlbums = async (query) => {
+    const addAlbums = async (query) => {
         try {
             const userData = JSON.parse(localStorage.getItem('user_data'));
 
@@ -115,9 +108,8 @@ function AlbumFunctions() {
                 throw new Error('User data not found');
             }
 
-            const obj_add = {userId: userData.id, name: query, jwtToken: userData.jwtToken };
+            const obj_add = { userId: userData.id, name: query, jwtToken: userData.jwtToken };
             const js_add = JSON.stringify(obj_add);
-            console.log(js_add);
 
             setLoading(true);
             const add_response = await fetch(bp.buildPath('api/adduseralbum'), {
@@ -132,8 +124,35 @@ function AlbumFunctions() {
                 throw new Error('Failed to search albums');
             }
 
-            const obj_search = {userId: userData.id, search: query, jwtToken: userData.jwtToken};
+            const obj_search = { userId: userData.id, search: query, jwtToken: userData.jwtToken };
             const js_search = JSON.stringify(obj_search);
+
+            setLoading(false);
+
+            return js_search;
+        }
+        catch (error) {
+            setLoading(false);
+            console.error('Error searching albums:', error);
+            return { error: 'Error adding album' };
+        }
+    };
+
+    const searchAlbums = async (query) => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+
+            if (!userData || !userData.id) {
+                throw new Error('User data not found');
+            }
+
+            setLoading(true);
+
+            const js_search = await addAlbums(query);
+
+            if (js_search.error) {
+                throw new Error(js_search.error);
+            }
 
             const search_response = await fetch(bp.buildPath("api/searchuseralbum"), {
                 method: 'POST',
@@ -175,16 +194,50 @@ function AlbumFunctions() {
         }
     };
 
-
-    const handleDelete = (index) => {
+    const deleteAlbum = async (query) => {
         // Handle deletion of album
         // Update albums array accordingly
-        const updatedAlbums = [...albums];
-        updatedAlbums.splice(index, 1);
-        setAlbums(updatedAlbums);
+        try {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+
+            if (!userData || !userData.id) {
+                throw new Error('User data not found');
+            }
+
+            const obj_add = { userId: userData.id, name: query, jwtToken: userData.jwtToken };
+            const js_add = JSON.stringify(obj_add);
+
+            setLoading(true);
+
+            const deleteRes = await fetch(bp.buildPath('api/deleteuseralbum'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: js_add
+            });
+
+            if (!deleteRes.ok) {
+                throw new Error('Failed to delete album');
+            }
+
+            const albumIndex = albums.findIndex(album => album.albumName === query);
+
+            const updatedAlbums = [...albums.slice(0, albumIndex), ...albums.slice(albumIndex + 1)];
+            setAlbums(updatedAlbums);
+
+            setLoading(false);
+
+            return updatedAlbums;
+        }
+
+        catch (e) {
+            console.log(e);
+            setLoading(false);
+        }
     };
 
-    return { albums, loading, searchAlbums, handleDelete };
+    return { albums, loading, searchAlbums, deleteAlbum };
 }
 
 export default AlbumFunctions;

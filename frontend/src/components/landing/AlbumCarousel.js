@@ -5,8 +5,8 @@ import 'slick-carousel/slick/slick-theme.css';
 import "../../styles/AlbumCarousel.css";
 import AlbumFunctions from "../../frontAPI/AlbumFunctions";
 
-function AlbumCarousel() {
-  const { albums, loading, handleDelete } = AlbumFunctions();
+function AlbumCarousel({ onDelete }) {
+  const { albums, loading } = AlbumFunctions();
   const [flippedIndex, setFlippedIndex] = useState(-1);
   const [showTracklist, setShowTracklist] = useState(false);
   const [slidesToShow, setSlidesToShow] = useState(3);
@@ -19,7 +19,7 @@ function AlbumCarousel() {
     if (albums.length > 0) {
       setSlidesToShow(Math.min(albums.length, 3));
     }
-  }, [albums]);
+  }, [albums.length]);
 
   const handleCardClick = (index) => {
     if (index === flippedIndex) {
@@ -41,8 +41,9 @@ function AlbumCarousel() {
           <p className="release">{album.albumYear}</p>
           <p className="tags">{album.albumTags.join(", ")}</p>
           {/* Review solution goes here */}
+          {/* Should make if so that if its a template album, there is no delete button */}
           <div className="delete_div">
-            <button className="delete_button" onClick={() => handleDelete()}>X</button>
+            <button className="delete_button" onClick={() => onDelete(album.albumName)}>X</button>
           </div>
         </div>
       );
@@ -57,6 +58,9 @@ function AlbumCarousel() {
 
   const settings = {
     customPaging: function (i) {
+      if (!albums[i]) {
+        i = i - 1;
+      }
       const album = albums[i];
       return (
         <a>
@@ -68,11 +72,11 @@ function AlbumCarousel() {
     infinite: true,
     dotsClass: "slick-dots slick-thumb",
     centerMode: true,
-    centerPadding: "50px",
+    centerPadding: "0px",
     speed: 500,
     slidesToShow: slidesToShow,
   };
-
+  
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -88,6 +92,7 @@ function AlbumCarousel() {
           ))}
         </Slider>
       </div>
+      {/* If there is no tracklist (template album), this is ignored */}
       {showTracklist && albums[flippedIndex]?.tracklists[0]?.tracks && (
         <div className="tracklist_box">
           <h2>Tracklist</h2>
