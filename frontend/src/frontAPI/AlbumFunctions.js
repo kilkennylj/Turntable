@@ -26,6 +26,15 @@ const getRandomPlaceholderCover = () => {
 function AlbumFunctions() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
+    const templateAlbum = new Album(
+        "Welcome to Turntable!",
+        "To get started, add one album by using",
+        "the search bar above.",
+        ["You can use this website to save albums you have listened to and review them."],
+        new Tracklist([new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
+        -2,
+        getRandomPlaceholderCover()
+    );
 
     var bp = require('./Path.js');
 
@@ -59,15 +68,7 @@ function AlbumFunctions() {
                 let formattedAlbums = [];
 
                 if (data.albums.length === 0) {
-                    // If user has no albums, create a template album
-                    const templateAlbum = new Album(
-                        "Welcome to Turntable!",
-                        "To get started, add one album by using",
-                        "the search bar above.",
-                        ["You can use this website to save albums you have listened to and review them."],
-                        new Tracklist([new Track(["Here is where your tracklist would go! ... If you had albums ...", -1])]),
-                        getRandomPlaceholderCover()
-                    );
+                    // If user has no albums, use a template album
                     formattedAlbums = [templateAlbum];
                 } else {
                     formattedAlbums = data.albums.map(albumData => {
@@ -84,6 +85,7 @@ function AlbumFunctions() {
                             albumData.Year,
                             albumData.Tags,
                             [tracklist],
+                            albumData.rating,
                             albumData.Cover
                         );
                     });
@@ -182,6 +184,7 @@ function AlbumFunctions() {
                     albumData.Year,
                     albumData.Tags,
                     [tracklist],
+                    albumData.rating,
                     albumData.Cover
                 );
             });
@@ -237,7 +240,48 @@ function AlbumFunctions() {
         }
     };
 
-    return { albums, loading, searchAlbums, deleteAlbum };
+    const updateAlbumRating = async (toUpdate, newRating) => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+
+            const obj_rating = {
+                userId: userData.id, name: toUpdate, rating: newRating,
+                jwtToken: userData.jwtToken
+            };
+            const js_rating = JSON.stringify(obj_rating);
+
+            if (!userData || !userData.id) {
+                throw new Error('User data not found');
+            }
+
+            const rating_response = await fetch(bp.buildPath('api/updateuserrating'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: js_rating,
+            });
+
+            if (!rating_response.ok) {
+                throw new Error('Failed to update album rating');
+            }
+
+            const updatedAlbums = albums.map(album => {
+                if (album.name === toUpdate) {
+                    return { ...album, rating: newRating };
+                }
+                return album;
+            });
+            setAlbums(updatedAlbums);
+
+        } catch (error) {
+            console.error('Error updating album rating:', error);
+            return null;
+        }
+    };
+
+
+    return { albums, loading, searchAlbums, deleteAlbum, updateAlbumRating };
 }
 
 export default AlbumFunctions;
