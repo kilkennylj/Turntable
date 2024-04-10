@@ -4,9 +4,10 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import "../../styles/AlbumCarousel.css";
 import AlbumFunctions from "../../frontAPI/AlbumFunctions";
+import StarRating from "./StarRating";
 
 function AlbumCarousel({ onDelete }) {
-  const { albums, loading } = AlbumFunctions();
+  const { albums, loading, updateAlbumRating } = AlbumFunctions();
   const [flippedIndex, setFlippedIndex] = useState(-1);
   const [showTracklist, setShowTracklist] = useState(false);
   const [slidesToShow, setSlidesToShow] = useState(3);
@@ -31,8 +32,17 @@ function AlbumCarousel({ onDelete }) {
     }
   };
 
+  const handleRatingChange = (index, newRating) => {
+    const albumName = albums[index].albumName;
+    updateAlbumRating(albumName, newRating);
+  };
+
+
   const renderCardContent = (index) => {
     const album = albums[index];
+    const isTemplateAlbum = album.rating === -2;
+    const isNewAlbum = album.rating === -1;
+
     if (index === flippedIndex) {
       return (
         <div className="back">
@@ -40,11 +50,18 @@ function AlbumCarousel({ onDelete }) {
           <p className="artist">{album.artistName}</p>
           <p className="release">{album.albumYear}</p>
           <p className="tags">{album.albumTags.join(", ")}</p>
-          {/* Review solution goes here */}
-          {/* Should make if so that if its a template album, there is no delete button */}
-          <div className="delete_div">
-            <button className="delete_button" onClick={() => onDelete(album.albumName)}>X</button>
-          </div>
+          {!isTemplateAlbum && (
+            <>
+              <StarRating initialRating={isNewAlbum ? 0 : album.rating} onChange={(newRating) => handleRatingChange(index, newRating)} />
+              <div className="delete_div">
+                <button className="delete_button" onClick={() => onDelete(album.albumName)}>X</button>
+              </div>
+            </>
+          )}
+          {isTemplateAlbum && (
+            <p className="suggest">You can rate your albums out of five stars!</p>
+          )}
+
         </div>
       );
     } else {
@@ -76,7 +93,7 @@ function AlbumCarousel({ onDelete }) {
     speed: 500,
     slidesToShow: slidesToShow,
   };
-  
+
   if (loading) {
     return <p>Loading...</p>;
   }

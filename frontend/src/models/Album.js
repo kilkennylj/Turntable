@@ -12,12 +12,13 @@ export class Tracklist {
 }
 
 export class Album {
-  constructor(albumName, artistName, albumYear, albumTags, tracklists, coverImage) {
+  constructor(albumName, artistName, albumYear, albumTags, tracklists, rating, coverImage) {
     this.albumName = albumName;
     this.artistName = artistName;
     this.albumYear = albumYear;
     this.albumTags = albumTags;
     this.tracklists = tracklists;
+    this.rating = rating;
     this.coverImage = coverImage;
   }
 }

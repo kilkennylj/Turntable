@@ -101,7 +101,8 @@
 
 .artist,
 .release,
-.tags {
+.tags,
+.suggest {
     font-family: "Poppins-Light";
     font-size: 18px;
 }
