@@ -113,15 +113,14 @@ function AlbumCarousel({ onDelete }) {
       {showTracklist && albums[flippedIndex]?.tracklists[0]?.tracks && (
         <div className="tracklist_box">
           <h2>Tracklist</h2>
-          <ul>
-            {albums[flippedIndex].tracklists[0].tracks.map((track, index) => {
-              return (
-                <li key={index}>
-                  {track.name} - {Math.floor(track.length / 60)}:{(track.length % 60) < 10 ? '0' + (track.length % 60) : (track.length % 60)}
-                </li>
-              );
-            })}
+          <ul className="tracklist">
+            {albums[flippedIndex].tracklists[0].tracks.map((track, index) => (
+              <li key={index}>
+                {index + 1}. {track.name} - {Math.floor(track.length / 60)}:{(track.length % 60) < 10 ? '0' + (track.length % 60) : (track.length % 60)}
+              </li>
+            ))}
           </ul>
+
         </div>
       )}
     </div>

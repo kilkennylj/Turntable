@@ -94,6 +94,25 @@
     padding: 20px;
 }
 
+.tracklist_box h2 {
+    font-family: "Poppins-Light";
+    font-size: 24px;
+    font-style: bold;
+    text-decoration: underline #dc3545;
+    ;    
+}
+
+.tracklist {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .tracklist li {
+    width: calc(100% / 3); /* Set each column to occupy one-third of the container width */
+    padding: 5px; /* Optional: Add padding for spacing between items */
+  }
+
 .title {
     font-family: "Bebas Neue";
     font-size: 28px;
