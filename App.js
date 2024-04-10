@@ -22,7 +22,18 @@ export default function App() {
           options={{ headerShown: false }} // Hide header for LandingPage
         />
 
-        <Stack.Screen name="searchpage" component={searchpage} />
+<Stack.Screen 
+  name="searchpage" 
+  component={searchpage} 
+  options={{ 
+    title: 'Turntable',
+    headerTitleStyle: {
+      fontFamily: 'Hendangan', // replace 'Your-Font-Family' with the actual font family name
+      fontSize: 30, // replace '20' with the size you want
+    },
+    headerTitleAlign: 'center',
+  }} 
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );

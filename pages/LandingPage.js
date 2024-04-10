@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bannerText: {
-    fontSize: 30,
+    fontSize: 40,
     fontFamily: "Hendangan",
     textAlign: "center",
     marginBottom: 20,
