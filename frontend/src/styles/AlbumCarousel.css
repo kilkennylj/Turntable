@@ -18,6 +18,20 @@
     transform: translate3d(0, 0, 0);
 }
 
+.slick-prev:before,
+.slick-next:before
+{
+    font-family: 'slick';
+    font-size: 40px;
+    line-height: 1;
+
+    opacity: .75;
+    color: red;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .slider_container {
     display: flex;
     width: 100%;
@@ -99,7 +113,7 @@
     font-size: 24px;
     font-style: bold;
     text-decoration: underline #dc3545;
-    ;    
+    ;
 }
 
 .tracklist {
@@ -107,7 +121,7 @@
     flex-wrap: wrap;
     align-items: center;
   }
-  
+
   .tracklist li {
     width: calc(100% / 3); /* Set each column to occupy one-third of the container width */
     padding: 5px; /* Optional: Add padding for spacing between items */

@@ -48,7 +48,6 @@ exports.setApp = function (app, client)
 				const token = require("./createJWT.js");
 				const accessToken = token.createToken(firstName, lastName, id).accessToken;
 				ret = { _id: id, accessToken: accessToken }
-				
 			}
 
 			catch (e)
