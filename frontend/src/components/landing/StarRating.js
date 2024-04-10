@@ -12,7 +12,7 @@ const StarRating = ({ initialRating, onChange }) => {
             className='stars'
             count={5}
             value={initialRating}
-            size={24}
+            size={50}
             edit={true}
             half={false}
             onChange={handleRatingChange}
