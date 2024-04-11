@@ -152,7 +152,7 @@ exports.setApp = function (app, client)
     		//getting the string
     		const { uniqueString } = req.params
     		//check is there is anyone with this string
-    		const user = await User.findOne({ uniqueString: uniqueString })
+    		const user = await user.findOne({ uniqueString: uniqueString })
     		if (user) {
         		//if there is anyone, mark them verified
         		user.isValid = true
