@@ -80,7 +80,7 @@ const forgotPassword = (email) =>
 		from: sender,
 		to: email,
 		subject: "Forgot Password",
-		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com/resetPassword">here</a> to reset your password`// THIS IS WRONG. FIX IT
+		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com/resetpassword">here</a> to reset your password`
 	};
 
 	Transport.sendMail(mailOptions, function (error, response)
