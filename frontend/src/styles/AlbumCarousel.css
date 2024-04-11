@@ -18,7 +18,7 @@
     transform: translate3d(0, 0, 0);
 }
 
-.slick-prev:before,
+/* .slick-prev:before,
 .slick-next:before
 {
     font-family: 'slick';
@@ -30,7 +30,7 @@
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
+} */
 
 .slider_container {
     display: flex;
@@ -55,6 +55,7 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: flex-start;
+    margin: auto;
     width: 350px;
     height: 350px;
     padding-top: 10px;
@@ -86,6 +87,12 @@
     border-radius: 8px;
 }
 
+.front {
+    width: 350px;
+    height: 350px;
+    margin: auto;
+}
+
 .slick-dots {
     position: static;
 }
@@ -98,6 +105,7 @@
 .carousel_img {
     width: 350px;
     height: 350px;
+    margin: auto;
 }
 
 .tracklist_box {
