@@ -1,16 +1,68 @@
 import React, { useState } from 'react';
 import PasswordComplexity from './PasswordComplexity';
 import { PasswordComplexityBoolean } from './PasswordComplexityBoolean';
+import { jwtDecode } from "jwt-decode";
 
 function ResetPassword()
 {
+    var bp = require('./Path.js');
+
     var loginPassword;
+
+    const [message,setMessage] = useState('');
 
     const doResetPassword = async event =>
     {
         if(loginPassword.value != "" && PasswordComplexityBoolean(loginPassword.value))
         {
             // Reset password
+            event.preventDefault();
+
+            const id = JSON.parse(localStorage.getItem('user_data'));
+
+            var obj = {_id:id, password:password.value};
+
+            var js = JSON.stringify(obj);
+
+            try
+            {
+                const response = await fetch(bp.buildPath('api/resetpassword'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
+
+                var res = JSON.parse(await response.text());
+
+                const { accessToken } = res;
+
+                const decoded = jwtDecode(accessToken,{complete:true});
+
+                try
+				{
+					var ud = decoded;
+                    var error = ud.error;
+					
+					// if (userId <= 0)
+					// {
+					// 	setMessage("User/Password combination incorrect");
+					// }
+					
+					// else
+					// {
+					// 	var user = {id:userId,jwtToken:accessToken}
+					// 	localStorage.setItem('user_data', JSON.stringify(user));
+						
+					// 	setMessage('');
+					// 	window.location.href = '/';
+					// }
+				}
+
+				catch(e)
+				{
+                    // Message
+				}
+            }
+            catch(e)
+            {
+                // Message
+            }
         }
         else
         {
