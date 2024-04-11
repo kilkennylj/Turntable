@@ -20,7 +20,9 @@ function Register()
 	
 	const doRegister = async event =>
 	{
-        if(firstName.value != "" && lastName.value != "" && email.value != "" && loginName.value != "" && loginPassword != "" && PasswordComplexityBoolean(loginPassword))
+		var bool = PasswordComplexityBoolean(loginPassword);
+
+        if(firstName.value !== "" && lastName.value !== "" && email.value !== "" && loginName.value !== "" && loginPassword !== "" && bool)
         {
             event.preventDefault();
 		
