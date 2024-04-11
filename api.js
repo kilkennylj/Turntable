@@ -44,7 +44,7 @@ const sendMail = (email, uniqueString) => {
 		}else {
 			console.log("Message Sent")
 		}
-	};
+	});
 }
 
 exports.setApp = function (app, client)
@@ -129,7 +129,7 @@ exports.setApp = function (app, client)
 			var albums = []; // Empty. Don't enter for API
 			var ratings = []; // Empty. Don't enter for API
 			const uniqueString = randString(); //Generates unique string for email varification
-           		const  isValid = false;
+			const  isValid = false;
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
