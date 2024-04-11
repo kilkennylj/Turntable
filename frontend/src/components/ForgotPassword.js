@@ -11,7 +11,7 @@ function ForgotPassword()
 
     const doForgetPassword = async event =>
     {
-        if(email.value != "")
+        if(email.value !== "")
         {
             // Send email
             event.preventDefault();

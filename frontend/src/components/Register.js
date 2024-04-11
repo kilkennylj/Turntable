@@ -31,6 +31,7 @@ function Register()
             try
             {
                 await fetch(bp.buildPath('api/register'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
+                await fetch(bp.buildPath('api/register'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
             
                 RedirectToLogin();
             }
