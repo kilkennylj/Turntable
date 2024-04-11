@@ -30,6 +30,8 @@ const sendMail = (email, uniqueString) => {
 		}
 	});
 
+	console.log(Transport.transporter.auth.credentials)
+
 	const sender = "Turntable"; //Sender's name
 	const mailOptions = {
 		from: sender,
@@ -42,6 +44,43 @@ const sendMail = (email, uniqueString) => {
 		if (error) {
 			console.log(error);
 		}else {
+			console.log("Message Sent")
+		}
+	});
+}
+
+//Sends email veification link
+const forgotPassword = (email) =>
+{
+	const Transport = nodemailer.createTransport(
+	{
+		service: "Gmail",
+		auth:
+		{
+			user: "turntableproject19@gmail.com",
+			pass: "WeLoveCOP4331"
+		}
+	});
+
+	console.log(Transport.transporter.auth.credentials)
+
+	const sender = "Turntable";
+	const mailOptions =
+	{
+		from: sender,
+		to: email,
+		subject: "Forgot Password",
+		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com/resetPassword">here</a> to reset your password`// THIS IS WRONG. FIX IT
+	};
+
+	Transport.sendMail(mailOptions, function (error, response)
+	{
+		if (error)
+		{
+			console.log(error);
+		}
+		else
+		{
 			console.log("Message Sent")
 		}
 	});
@@ -155,6 +194,88 @@ exports.setApp = function (app, client)
 		
 		// I believe it should be like this, like the other endpoints
 		var ret = { results: _ret, error: error };
+		res.status(200).json(ret);
+	});
+
+	app.post('/api/forgotpassword', async (req, res, next) =>
+	{
+		// incoming: email
+		// outgoing: _id, error
+
+		// _id is the userId assiociated to the email.
+		// It is needed for the endpoint that resets password
+
+		// This function happens after a user enters an email for forgot password
+		// It checks if the email is in the db. If it is, we send an email out
+
+		var error = '';
+		var userId = '';
+
+		const { email } = req.body;
+
+		try
+		{
+			const db = client.db("Turntable");
+			var user = await db.collection('Users').findOne({ Email : email });
+
+			if (!user)
+			{
+				error = 'No user assiociated with that email.'
+			}
+
+			else
+			{
+				userId = user._id;
+				// forgotPassword(email); 
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e);
+			error = e.message;
+		}
+
+		// If userId empty, there should be an error.
+		var ret = {_id: userId, error: error};
+
+		res.status(200).json(ret);
+	});
+
+	app.post('/api/resetpassword', async (req, res, next) =>
+	{
+		// incoming: _id, password
+		// outgoing: error
+
+		var error = '';
+		
+		const { _id, password } = req.body;
+
+		try
+		{
+			const db = client.db("Turntable");
+			var user = await db.collection('Users').findOne({ _id : new ObjectId(_id) });
+
+			// Should never occur naturally
+			if (!user)
+			{
+				error = 'No user found, _id is incorrect.'
+			}
+
+			else
+			{
+				await db.collection('Users').updateOne({ _id: new ObjectId(_id)}, {$set: { Password: password }});
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e);
+			error = e.message;
+		}
+
+		var ret = {error: error};
+
 		res.status(200).json(ret);
 	});
 
