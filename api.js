@@ -23,7 +23,7 @@ const randString = () => {
 //Sends email veification link
 const sendMail = (email, uniqueString) => {
 	require('dotenv').config();
-	const email = process.env.GMAIL_EMAIL;
+	const ourEmail = process.env.GMAIL_EMAIL;
 	const password = process.env.GMAIL_PASSWORD;
 
 	const Transport = nodemailer.createTransport(
@@ -31,7 +31,7 @@ const sendMail = (email, uniqueString) => {
 		service: "Gmail",
 		auth:
 		{
-			user: email,
+			user: ourEmail,
 			pass: password
 		}
 	});
@@ -59,7 +59,7 @@ const sendMail = (email, uniqueString) => {
 const forgotPassword = (email) =>
 {
 	require('dotenv').config();
-	const email = process.env.GMAIL_EMAIL;
+	const ourEmail = process.env.GMAIL_EMAIL;
 	const password = process.env.GMAIL_PASSWORD;
 
 	const Transport = nodemailer.createTransport(
@@ -67,7 +67,7 @@ const forgotPassword = (email) =>
 		service: "Gmail",
 		auth:
 		{
-			user: email,
+			user: ourEmail,
 			pass: password
 		}
 	});
