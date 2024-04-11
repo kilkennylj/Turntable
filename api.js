@@ -203,6 +203,8 @@ exports.setApp = function (app, client)
 			error = e.toString();
 		}
 
+		console.log("About to send mail");
+
 		sendMail(email, uniqueString);
 		
 		// I believe it should be like this, like the other endpoints
@@ -239,7 +241,7 @@ exports.setApp = function (app, client)
 			else
 			{
 				userId = user._id;
-				// forgotPassword(email); 
+				forgotPassword(email); 
 			}
 		}
 
