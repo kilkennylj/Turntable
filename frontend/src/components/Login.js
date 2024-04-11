@@ -78,38 +78,38 @@ function Login()
 	};
 	
 	return(
-		<div class="tw-flex tw-justify-center tw-items-center">
-			<div class="tw-z-[60] tw-absolute tw-w-[384px] tw-h-[496px] tw-border-2 tw-border-white tw-rounded-md tw-px-12 tw-pt-8 tw-pb-8 max-sm:tw-border-none"></div>
-			<form class="tw-z-[60] tw-relative tw-rounded-md tw-px-12 tw-pt-8 tw-pb-8" onSubmit={doLogin}>
+		<div className="tw-flex tw-justify-center tw-items-center">
+			<div className="tw-z-[60] tw-absolute tw-w-[384px] tw-h-[496px] tw-border-2 tw-border-white tw-rounded-md tw-px-12 tw-pt-8 tw-pb-8 max-sm:tw-border-none"></div>
+			<form className="tw-z-[60] tw-relative tw-rounded-md tw-px-12 tw-pt-8 tw-pb-8" onSubmit={doLogin}>
 				{/* Title text*/}
-				<div class="tw-mt-20 tw-mb-10 tw-flex tw-justify-center">
-					<label class="tw-w-56 tw-h-20 tw-text-red tw-text-5xl tw-font-normal tw-font-Hendangan">Turntable</label>
+				<div className="tw-mt-20 tw-mb-10 tw-flex tw-justify-center">
+					<label className="tw-w-56 tw-h-20 tw-text-red tw-text-5xl tw-font-normal tw-font-Hendangan">Turntable</label>
 				</div>
 				{/* Username */}
-                <div class="tw-mb-2">
-                    <label class="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Username</label>
-                    <input class="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="text" id="loginName" placeholder="Your username..." ref={ (c) => loginName = c} /><br />
+                <div className="tw-mb-2">
+                    <label className="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Username</label>
+                    <input className="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="text" id="loginName" placeholder="Your username..." ref={ (c) => loginName = c} /><br />
                 </div>
 				{/* Password */}
-                <div class="tw-mb-0">
-                    <label class="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Password</label>
-                    <input class="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="password" id="loginPassword" placeholder="Your password..." ref={ (c) => loginPassword = c} /><br />
+                <div className="tw-mb-0">
+                    <label className="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Password</label>
+                    <input className="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="password" id="loginPassword" placeholder="Your password..." ref={ (c) => loginPassword = c} /><br />
                 </div>
 				{/* Forgot password subtext */}
-                <div class="tw-mb-2">
-                    <label class="tw-text-white tw-text-xs tw-underline tw-cursor-pointer tw-font-TWGr" onClick={RedirectToForgotPassword}>Forgot password?</label>
+                <div className="tw-mb-2">
+                    <label className="tw-text-white tw-text-xs tw-underline tw-cursor-pointer tw-font-TWGr" onClick={RedirectToForgotPassword}>Forgot password?</label>
                 </div>
 				{/* Login Button */}
-                <div class="tw-mb-2 tw-flex tw-justify-center">
-                    <input class="tw-w-28 tw-h-10 tw-bg-white hover:tw-bg-gray-50 tw-rounded-3xl tw-underline tw-cursor-pointer tw-text-sm tw-font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
+                <div className="tw-mb-2 tw-flex tw-justify-center">
+                    <input className="tw-w-28 tw-h-10 tw-bg-white hover:tw-bg-gray-50 tw-rounded-3xl tw-underline tw-cursor-pointer tw-text-sm tw-font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
                 </div>
 				{/* Register a new account subtext */}
-                <div class="tw-mb-2 tw-flex tw-justify-center">
-                    <label class="tw-pr-2 tw-text-white tw-text-xs tw-font-TWGr">Don't have an account?</label>
-                    <label class="tw-underline tw-cursor-pointer tw-text-white tw-text-xs tw-font-TWGr" onClick={RedirectToRegister}>Register</label>
+                <div className="tw-mb-2 tw-flex tw-justify-center">
+                    <label className="tw-pr-2 tw-text-white tw-text-xs tw-font-TWGr">Don't have an account?</label>
+                    <label className="tw-underline tw-cursor-pointer tw-text-white tw-text-xs tw-font-TWGr" onClick={RedirectToRegister}>Register</label>
                 </div>
 				{/* Error message */}
-                <div class="tw-flex tw-justify-center">
+                <div className="tw-flex tw-justify-center">
                     <span id="loginResult">{message}</span>
                 </div>
 			</form>
