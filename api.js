@@ -119,9 +119,12 @@ exports.setApp = function (app, client)
 		var id = -1;
 		var firstName = '';
 		var lastName = '';
-		var isValid = true;
+		var isValid = false;
 
-		isValid = results[0].IsValid;
+		if (results.length > 0)
+		{
+			isValid = results[0].IsValid;
+		}
 
 		var ret;
 
