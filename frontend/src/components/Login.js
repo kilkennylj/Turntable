@@ -45,7 +45,7 @@ function Login()
 				
 				else
 				{
-					var user = {firstName:firstName,lastName:lastName,id:userId}
+					var user = {firstName:firstName,lastName:lastName,id:userId,jwtToken:accessToken}
 					localStorage.setItem('user_data', JSON.stringify(user));
 					
 					setMessage('');

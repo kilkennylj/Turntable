@@ -1,0 +1,141 @@
+@font-face {
+    font-family: "Bebas Neue";
+    src: url("../../public/fonts/BebasNeue-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins-Light";
+    src: url("../../public/fonts/Poppins-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: light;
+}
+
+.slick-slider .slick-track,
+.slick-slider .slick-list {
+    display: flex;
+    transform: translate3d(0, 0, 0);
+}
+
+.slick-prev:before,
+.slick-next:before
+{
+    font-family: 'slick';
+    font-size: 40px;
+    line-height: 1;
+
+    opacity: .75;
+    color: red;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.slider_container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+}
+
+.delete_div {
+    display: flex;
+    height: 100%;
+    vertical-align: bottom;
+    width: fit-content;
+    flex-direction: column-reverse;
+}
+
+.back {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 350px;
+    height: 350px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    background-color: #f2f2f2;
+}
+
+.delete_button {
+    background-color: #dc3545;
+    border-radius: 4px;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.carousel_box {
+    width: 95%;
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background-color: #dadde3;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.slick-dots {
+    position: static;
+}
+
+.slick-dots li {
+    height: 40px;
+    width: 40px;
+}
+
+.carousel_img {
+    width: 350px;
+    height: 350px;
+}
+
+.tracklist_box {
+    width: 80%;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.tracklist_box h2 {
+    font-family: "Poppins-Light";
+    font-size: 24px;
+    font-style: bold;
+    text-decoration: underline #dc3545;
+    ;
+}
+
+.tracklist {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tracklist li {
+    width: calc(100% / 3); /* Set each column to occupy one-third of the container width */
+    padding: 5px; /* Optional: Add padding for spacing between items */
+  }
+
+.title {
+    font-family: "Bebas Neue";
+    font-size: 28px;
+}
+
+.artist,
+.release,
+.tags,
+.suggest {
+    font-family: "Poppins-Light";
+    font-size: 18px;
+}
