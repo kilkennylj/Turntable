@@ -5,10 +5,10 @@ import Background from '../components/Background';
 const RegisterPage = () =>
 {
 	return(
-		<div class="overflow-hidden w-screen h-screen flex justify-center items-center max-sm:bg-gray-300">
-			<div class="relative flex items-end justify-end">
+		<div class="tw-overflow-hidden tw-w-screen tw-h-screen tw-flex tw-justify-center tw-items-center max-sm:tw-bg-gray-300">
+			<div class="tw-relative tw-flex tw-items-end tw-justify-end">
 				<Register />
-				<div class="flex items-center justify-center text-white">
+				<div class="tw-flex tw-items-center tw-justify-center tw-text-white">
 					<Background />
 				</div>
 			</div>

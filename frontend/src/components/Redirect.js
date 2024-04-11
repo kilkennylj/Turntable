@@ -8,3 +8,8 @@ export function RedirectToRegister()
 {
     window.location.href = './register';
 }
+
+export function RedirectToForgotPassword()
+{
+    window.location.href = './forgotpassword';
+}
