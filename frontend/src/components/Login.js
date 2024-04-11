@@ -16,7 +16,7 @@ function Login()
 	
 	const doLogin = async event =>
 	{
-		if(loginName != "" && loginPassword != "")
+		if(loginName !== "" && loginPassword !== "")
 		{
 			event.preventDefault();
 		

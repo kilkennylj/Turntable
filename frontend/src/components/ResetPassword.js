@@ -8,7 +8,7 @@ function ResetPassword()
 
     const doResetPassword = async event =>
     {
-        if(loginPassword.value != "" && PasswordComplexityBoolean(loginPassword.value))
+        if(loginPassword.value !== "" && PasswordComplexityBoolean(loginPassword.value))
         {
             // Reset password
         }

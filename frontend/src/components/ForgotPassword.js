@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 function ForgotPassword()
 {
@@ -6,7 +6,7 @@ function ForgotPassword()
 
     const doForgetPassword = async event =>
     {
-        if(email.value != "")
+        if(email.value !== "")
         {
             // Send email
         }

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { RedirectToLogin } from './Redirect.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import PasswordComplexity from './PasswordComplexity.js';
-import { verifyPassword } from './PasswordComplexity.js';
+// import { verifyPassword } from './PasswordComplexity.js';
 
 function Register()
 {
@@ -20,7 +20,7 @@ function Register()
 	
 	const doRegister = async event =>
 	{
-        if(firstName.value != "" && lastName.value != "" && email.value != "" && loginName.value != "" && loginPassword != "")
+        if(firstName.value !== "" && lastName.value !== "" && email.value !== "" && loginName.value !== "" && loginPassword !== "")
         {
             event.preventDefault();
 		
@@ -30,7 +30,7 @@ function Register()
         
             try
             {
-                const response = await fetch(bp.buildPath('api/register'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
+                await fetch(bp.buildPath('api/register'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
             
                 RedirectToLogin();
             }
