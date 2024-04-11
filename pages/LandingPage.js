@@ -33,14 +33,13 @@ let searching = false;
 
 const LandingPage = ({ navigation, route }) => {
   const { jwt , userId} = route.params;
-  //console.log("User ID:", userId);
-  //const decodedtoken = jwtDecode(jwt);
+
   console.log("Decoded token:", jwt);
   const [albums, setAlbums] = useState([]);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  //const albumsofuser = [];
+
   const [albumsofuser, setAlbumsofuser] = useState([]);
 
   const [selectedAlbum, setSelectedAlbum] = useState(null);
@@ -49,6 +48,8 @@ const LandingPage = ({ navigation, route }) => {
   const [ratings, setRatings] = useState({});
   const [maxRating, setmaxRating] = useState([1, 2, 3, 4, 5]);
 
+
+  
   const handleRating = (albumId, rating) => {
     setRatings((prevRatings) => ({
       ...prevRatings,
@@ -149,7 +150,11 @@ const LandingPage = ({ navigation, route }) => {
 
       const responseData = await response.json();
       console.log("Number Of albums: ", responseData.albums.length);
-      //
+
+        
+
+
+      
 
       if (justloged === true) {
         const updatedAlbums = responseData.albums.map((albumData) => {
@@ -192,7 +197,7 @@ const LandingPage = ({ navigation, route }) => {
 
     try {
       const data = {
-        ususerId: userId,
+        userId: userId,
         name: album.Name,
         jwtToken: jwt,
       };
@@ -229,8 +234,9 @@ const LandingPage = ({ navigation, route }) => {
       console.error("Error:", error);
     }
   };
-  if (justloged === true) SearchUserAlbum();
 
+  if (justloged === true) SearchUserAlbum();
+  
   const UpdateUserRating = async ({ searchQuery, rating }) => {
     console.log("Trying to rate", searchQuery, rating);
     try {
@@ -308,7 +314,6 @@ const LandingPage = ({ navigation, route }) => {
         responseData.results.Length,
         responseData.results.Name,
         responseData.results.Tags,
-        responseData.results.Tags,
         responseData.results.Tracks
       );
 
@@ -350,6 +355,7 @@ const LandingPage = ({ navigation, route }) => {
   };
 
   const addAlbum = () => {
+  
     const data = {
       userId: userId,
       name: searchQuery,
@@ -384,6 +390,8 @@ const LandingPage = ({ navigation, route }) => {
         setMessage("Error adding album. Please try again.");
       });
   };
+
+  //if(albumsofuser.length === 0) addAlbum("light as a feather");
 
   const handleAlbumPress = (album) => {
     setSelectedAlbum(album);

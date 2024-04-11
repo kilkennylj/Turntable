@@ -24,9 +24,9 @@ function SearchPage({ navigation, route }) {
         <Text style={{ color: "black", fontSize: 20 }}>{album.Artist}</Text>
         <Text style={{ color: "black", fontSize: 20 }}>{album.Year}</Text>
 
-        <Text style={{ color: "black" }}>Tags: {album.Tags.join(", ")}</Text>
+        <Text style={{ color: "black",  }}>Tags: {album.Tags.join(", ")}</Text>
         {album.Tracks.map((track, index) => (
-          <Text key={index} style={{ color: "black" }}>
+          <Text key={index} style={{ color: "black",textAlign: 'left' }}>
             Song: {track} - {album.Length[index]} Sec
           </Text>
         ))}
