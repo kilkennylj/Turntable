@@ -72,16 +72,17 @@ exports.setApp = function (app, client)
 		var lastName = '';
 		var isValid = true;
 
+		isValid = results[0].IsValid;
+
 		var ret;
 
 		// if valid
-		if (results.length > 0)
+		if (results.length > 0 && isValid == true)
 		{
 			// as discussed above, the left should have one case type, the right has another
 			id = results[0]._id;
 			firstName = results[0].FirstName;
 			lastName = results[0].LastName;
-			isValid = results[0].IsValid;
 
 			// required JWT
 			try
@@ -97,6 +98,9 @@ exports.setApp = function (app, client)
 			}
 		}
 
+		else if(isValid == false){
+			ret = { error: "Account is not Verified"};
+		}	
 		// if invalid
 		else
 		{
