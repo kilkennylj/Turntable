@@ -22,11 +22,17 @@ const randString = () => {
 
 //Sends email veification link
 const sendMail = (email, uniqueString) => {
-	const Transport = nodemailer.createTransport({
+	require('dotenv').config();
+	const email = process.env.GMAIL_EMAIL;
+	const password = process.env.GMAIL_PASSWORD;
+
+	const Transport = nodemailer.createTransport(
+	{
 		service: "Gmail",
-		auth: {
-			user: "turntableproject19@gmail.com", // Sender's email address
-			pass: "WeLoveCOP4331" //Sender's email password
+		auth:
+		{
+			user: email,
+			pass: password
 		}
 	});
 
@@ -52,13 +58,17 @@ const sendMail = (email, uniqueString) => {
 //Sends email veification link
 const forgotPassword = (email) =>
 {
+	require('dotenv').config();
+	const email = process.env.GMAIL_EMAIL;
+	const password = process.env.GMAIL_PASSWORD;
+
 	const Transport = nodemailer.createTransport(
 	{
 		service: "Gmail",
 		auth:
 		{
-			user: "turntableproject19@gmail.com",
-			pass: "WeLoveCOP4331"
+			user: email,
+			pass: password
 		}
 	});
 
