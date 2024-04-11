@@ -1,12 +1,100 @@
 require('express');
 require('mongodb');
 
-const axios = require('axios')
+const axios = require('axios');
 
+const nodemailer = require('nodemailer');
 // Required for searching by _id
 const { ObjectId } = require('mongodb');
 
 var spotifyKey;
+
+//generates a random string of len digits
+const randString = () => {
+	const len = 8;
+	let randStr = ' ';
+	for (let i = 0; i < len; i++){;
+		const ch = Math.floor((Math.random() * 10) + 1); //Generate random number from 0 to 9
+		randStr += ch;
+	}
+	return randStr
+}
+
+//Sends email veification link
+const sendMail = (email, uniqueString) => {
+	require('dotenv').config();
+	const ourEmail = process.env.GMAIL_EMAIL;
+	const password = process.env.GMAIL_PASSWORD;
+
+	const Transport = nodemailer.createTransport(
+	{
+		service: "Gmail",
+		auth:
+		{
+			user: ourEmail,
+			pass: password
+		}
+	});
+
+	console.log(Transport.transporter.auth.credentials)
+
+	const sender = "Turntable"; //Sender's name
+	const mailOptions = {
+		from: sender,
+		to: email, //Recipient
+		subject: "Email Confirmation",
+		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com//verify/${uniqueString}">here</a> to verify your email. Thanks`	
+	};
+
+	Transport.sendMail(mailOptions, function (error, response) {
+		if (error) {
+			console.log(error);
+		}else {
+			console.log("Message Sent")
+		}
+	});
+}
+
+//Sends email veification link
+const forgotPassword = (email) =>
+{
+	require('dotenv').config();
+	const ourEmail = process.env.GMAIL_EMAIL;
+	const password = process.env.GMAIL_PASSWORD;
+
+	const Transport = nodemailer.createTransport(
+	{
+		service: "Gmail",
+		auth:
+		{
+			user: ourEmail,
+			pass: password
+		}
+	});
+
+	console.log(Transport.transporter.auth.credentials)
+
+	const sender = "Turntable";
+	const mailOptions =
+	{
+		from: sender,
+		to: email,
+		subject: "Forgot Password",
+		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com/resetpassword">here</a> to reset your password`
+	};
+
+	Transport.sendMail(mailOptions, function (error, response)
+	{
+		if (error)
+		{
+			console.log(error);
+		}
+		else
+		{
+			console.log("Message Sent")
+		}
+	});
+}
 
 exports.setApp = function (app, client)
 {
@@ -31,11 +119,17 @@ exports.setApp = function (app, client)
 		var id = -1;
 		var firstName = '';
 		var lastName = '';
+		var isValid = false;
+
+		if (results.length > 0)
+		{
+			isValid = results[0].IsValid;
+		}
 
 		var ret;
 
 		// if valid
-		if (results.length > 0)
+		if (results.length > 0 && isValid == true)
 		{
 			// as discussed above, the left should have one case type, the right has another
 			id = results[0]._id;
@@ -56,6 +150,9 @@ exports.setApp = function (app, client)
 			}
 		}
 
+		else if(results.length > 0 && isValid == false){
+			ret = { error: "Account is not Verified"};
+		}	
 		// if invalid
 		else
 		{
@@ -73,7 +170,9 @@ exports.setApp = function (app, client)
 		var error = '';
 
 		const { firstName, lastName, email, login, password } = req.body;
-
+		const uniqueString = randString()
+		const isValid = false
+		
 		var _ret = [];
 
 		try
@@ -81,21 +180,135 @@ exports.setApp = function (app, client)
 			const db = client.db("Turntable");
 			var albums = []; // Empty. Don't enter for API
 			var ratings = []; // Empty. Don't enter for API
-
+			const uniqueString = randString(); //Generates unique string for email varification
+			const  isValid = false;
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
-			var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email };
-			_ret = await db.collection('Users').insertOne(newUser);
+			checkDupLogin = await db.collection('Users').findOne({ Login : login})
+			checkDupEmail = await db.collection('Users').findOne({ Email : email})
+			
+			if (checkDupLogin){
+				error = "Login already in use";
+				
+			}else if (checkDupEmail){
+				error = "Email already in use";
+			}else{
+				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email, IsValid: isValid, UniqueString: uniqueString };
+				_ret = await db.collection('Users').insertOne(newUser);
+			}
 		}
 		catch (e)
 		{
 			error = e.toString();
 		}
 
+		sendMail(email, uniqueString);
+		
 		// I believe it should be like this, like the other endpoints
 		var ret = { results: _ret, error: error };
 		res.status(200).json(ret);
+	});
+
+	app.post('/api/forgotpassword', async (req, res, next) =>
+	{
+		// incoming: email
+		// outgoing: _id, error
+
+		// _id is the userId assiociated to the email.
+		// It is needed for the endpoint that resets password
+
+		// This function happens after a user enters an email for forgot password
+		// It checks if the email is in the db. If it is, we send an email out
+
+		var error = '';
+		var userId = '';
+
+		const { email } = req.body;
+
+		try
+		{
+			const db = client.db("Turntable");
+			var user = await db.collection('Users').findOne({ Email : email });
+
+			if (!user)
+			{
+				error = 'No user assiociated with that email.'
+			}
+
+			else
+			{
+				userId = user._id;
+				// forgotPassword(email); 
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e);
+			error = e.message;
+		}
+
+		// If userId empty, there should be an error.
+		var ret = {_id: userId, error: error};
+
+		res.status(200).json(ret);
+	});
+
+	app.post('/api/resetpassword', async (req, res, next) =>
+	{
+		// incoming: _id, password
+		// outgoing: error
+
+		var error = '';
+		
+		const { _id, password } = req.body;
+
+		try
+		{
+			const db = client.db("Turntable");
+			var user = await db.collection('Users').findOne({ _id : new ObjectId(_id) });
+
+			// Should never occur naturally
+			if (!user)
+			{
+				error = 'No user found, _id is incorrect.'
+			}
+
+			else
+			{
+				await db.collection('Users').updateOne({ _id: new ObjectId(_id)}, {$set: { Password: password }});
+			}
+		}
+
+		catch(e)
+		{
+			console.log(e);
+			error = e.message;
+		}
+
+		var ret = {error: error};
+
+		res.status(200).json(ret);
+	});
+
+	app.get('/api/verify/:uniquestring', async (reg, res) => {
+    		//getting the string
+    		const { uniqueString } = req.params
+		const db = client.db("Turntable");
+		
+    		//check is there is anyone with this string
+    		const user = await db.collection('User').findOne({ uniqueString: uniqueString })
+    		if (user) {
+        		//if there is anyone, mark them verified
+        		user.isValid = true
+        		await user.save()
+        		//redirect to the home or anywhere else (not sure if this is needed)
+        		res.redirect('/')
+    		} else {
+        		//else send an error message 
+        		res.json('User not found')
+   		 }
 	});
 
 	app.post('/api/addalbum', async (req, res, next) =>
