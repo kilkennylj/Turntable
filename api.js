@@ -119,12 +119,12 @@ exports.setApp = function (app, client)
 		var id = -1;
 		var firstName = '';
 		var lastName = '';
-		var isValid = false;
+		var isValid = true;
 
-		if (results.length > 0)
-		{
-			isValid = results[0].IsValid;
-		}
+		// if (results.length > 0)
+		// {
+			// isValid = results[0].IsValid;
+		// }
 
 		var ret;
 
@@ -171,7 +171,7 @@ exports.setApp = function (app, client)
 
 		const { firstName, lastName, email, login, password } = req.body;
 		const uniqueString = randString()
-		const isValid = false
+		const isValid = true
 		
 		var _ret = [];
 
@@ -181,7 +181,7 @@ exports.setApp = function (app, client)
 			var albums = []; // Empty. Don't enter for API
 			var ratings = []; // Empty. Don't enter for API
 			const uniqueString = randString(); //Generates unique string for email varification
-			const  isValid = false;
+			// const  isValid = false;
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
@@ -203,7 +203,7 @@ exports.setApp = function (app, client)
 			error = e.toString();
 		}
 
-		sendMail(email, uniqueString);
+		// sendMail(email, uniqueString);
 		
 		// I believe it should be like this, like the other endpoints
 		var ret = { results: _ret, error: error };
