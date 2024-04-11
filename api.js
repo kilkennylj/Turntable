@@ -26,7 +26,7 @@ const sendMail = (email, uniqueString) => {
 		service: "Gmail",
 		auth: {
 			user: "turntableproject19@gmail.com", // Sender's email address
-			pass: "WeLoveCOP4331" //Sender's email password
+			pass: "lcne ghoe djat mjnb" //Sender's email password
 		}
 	});
 
@@ -58,7 +58,7 @@ const forgotPassword = (email) =>
 		auth:
 		{
 			user: "turntableproject19@gmail.com",
-			pass: "WeLoveCOP4331"
+			pass: "lcne ghoe djat mjnb"
 		}
 	});
 
