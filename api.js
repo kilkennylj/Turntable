@@ -25,8 +25,8 @@ const sendMail = (email, uniqueString) => {
 	const Transport = nodemailer.createTransport({
 		service: "Gmail",
 		auth: {
-			user: "turntable726@gmail.com", // Sender's email address
-			pass: "Turntable21212" //Sender's email password
+			user: "turntableproject19@gmail.com", // Sender's email address
+			pass: "WeLoveCOP4331" //Sender's email password
 		}
 	});
 
@@ -35,7 +35,7 @@ const sendMail = (email, uniqueString) => {
 		from: sender,
 		to: email, //Recipient
 		subject: "Email Confirmation",
-		html: 'Press <a href="http://localhost:3000/verify/${uniqueString}">here</a> to verify your email. Thanks`	
+		html: 'Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com//verify/${uniqueString}">here</a> to verify your email. Thanks`	
 	};
 
 	Transport.sendMail(mailOptions, function (error, response) {
