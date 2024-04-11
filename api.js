@@ -133,8 +133,8 @@ exports.setApp = function (app, client)
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
-			checkDupLogin = await db.findOne({ Login : login})
-			checkDupEmail = await db.findOne({ Email : email})
+			checkDupLogin = await db.collection('Users').findOne({ Login : login})
+			checkDupEmail = await db.collection('Users').findOne({ Email : email})
 			
 			if (checkDupLogin){
 				error = "Login already in use";
@@ -161,8 +161,10 @@ exports.setApp = function (app, client)
 	app.get('/api/verify/:uniquestring', async (reg, res) => {
     		//getting the string
     		const { uniqueString } = req.params
+		const db = client.db("Turntable");
+		
     		//check is there is anyone with this string
-    		const user = await user.findOne({ uniqueString: uniqueString })
+    		const user = await db.collection('User').findOne({ uniqueString: uniqueString })
     		if (user) {
         		//if there is anyone, mark them verified
         		user.isValid = true
