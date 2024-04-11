@@ -98,7 +98,7 @@ exports.setApp = function (app, client)
 			}
 		}
 
-		else if(isValid == false){
+		else if(results.length > 0 && isValid == false){
 			ret = { error: "Account is not Verified"};
 		}	
 		// if invalid
@@ -133,10 +133,14 @@ exports.setApp = function (app, client)
 			// somehow get the largest UserID in the database, add one, put it in the newUser
 			// also check for error here, just realized this function doesn't do that
 
-			checkDup = await db.findOne({ Login : login})
-			if (checkDup){
+			checkDupLogin = await db.findOne({ Login : login})
+			checkDupEmail = await db.findOne({ Email : email})
+			
+			if (checkDupLogin){
 				error = "Login already in use";
 				
+			}else if (checkDupEmail){
+				error = "Email already in use";
 			}else{
 				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email, IsValid: isValid, UniqueString: uniqueString };
 				_ret = await db.collection('Users').insertOne(newUser);
