@@ -70,6 +70,7 @@ exports.setApp = function (app, client)
 		var id = -1;
 		var firstName = '';
 		var lastName = '';
+		var isValid = true;
 
 		var ret;
 
@@ -80,6 +81,7 @@ exports.setApp = function (app, client)
 			id = results[0]._id;
 			firstName = results[0].FirstName;
 			lastName = results[0].LastName;
+			isValid = results[0].IsValid;
 
 			// required JWT
 			try
@@ -132,7 +134,7 @@ exports.setApp = function (app, client)
 				error = "Login already in use";
 				
 			}else{
-				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email };
+				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email, IsValid: isValid, UniqueString: uniqueString };
 				_ret = await db.collection('Users').insertOne(newUser);
 			}
 		}
