@@ -70,37 +70,38 @@ function Login()
 	};
 	
 	return(
-		<div className="w-screen h-screen flex justify-center items-center">
-			<form className="bg-gray-400 border border-black rounded px-12 pt-8 pb-8" onSubmit={doLogin}>
+		<div className="flex justify-center items-center">
+			<div className="z-[60] absolute w-[386px] h-[498px] border-2 border-white rounded-md px-12 pt-8 pb-8 max-sm:border-none"></div>
+			<form className="z-[60] relative rounded-md px-12 pt-8 pb-8" onSubmit={doLogin}>
 				{/* Title text*/}
-				<div className="mt-20 mb-10 md:flex justify-center">
-					<label className="w-56 h-20 text-red-500 text-5xl font-normal font-['Hendangan']">Turntable</label>
+				<div className="mt-20 mb-10 flex justify-center">
+					<label className="w-56 h-20 text-red text-5xl font-normal font-Hendangan">Turntable</label>
 				</div>
 				{/* Username */}
                 <div className="mb-2">
-                    <label className="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Username</label>
-                    <input className="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="text" id="loginName" ref={ (c) => loginName = c} /><br />
+                    <label className="block w-max text-white text-sm font-TWGsb">Username</label>
+                    <input className="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="text" id="loginName" ref={ (c) => loginName = c} /><br />
                 </div>
 				{/* Password */}
                 <div className="mb-0">
-                    <label className="block w-max text-black text-lg font-bold font-['Lucida Sans Typewriter']">Password</label>
-                    <input className="w-72 h-10 rounded-3xl py-2 px-3 bg-white border border-black appearance-none" type="password" id="loginPassword" ref={ (c) => loginPassword = c} /><br />
+                    <label className="block w-max text-white text-sm font-TWGsb">Password</label>
+                    <input className="w-72 h-10 rounded-3xl py-2 px-3 bg-gray-200 border border-black appearance-none" type="password" id="loginPassword" ref={ (c) => loginPassword = c} /><br />
                 </div>
 				{/* Forgot password subtext */}
                 <div className="mb-2">
-                    <label className="text-black text-xs underline cursor-pointer font-['Lucida Sans Typewriter']">Forgot password?</label>
+                    <label className="text-white text-xs underline cursor-pointer font-TWGr">Forgot password?</label>
                 </div>
 				{/* Login Button */}
-                <div className="mb-2 md:flex md:justify-center">
-                    <input className="w-28 h-10 bg-white rounded-3xl font-bold underline cursor-pointer font-['Lucida Sans Typewriter']" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
+                <div className="mb-2 flex justify-center">
+                    <input className="w-28 h-10 bg-white hover:bg-gray-50 rounded-3xl underline cursor-pointer text-sm font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />
                 </div>
 				{/* Register a new account subtext */}
-                <div className="mb-2 md:flex md:justify-center">
-                    <label className="pr-2">Don't have an account?</label>
-                    <label className="underline cursor-pointer" onClick={RedirectToRegister}>Register</label>
+                <div className="mb-2 flex justify-center">
+                    <label className="pr-2 text-white text-xs font-TWGr">Don't have an account?</label>
+                    <label className="underline cursor-pointer text-white text-xs font-TWGr" onClick={RedirectToRegister}>Register</label>
                 </div>
 				{/* Error message */}
-                <div className="md:flex md:justify-center">
+                <div className="flex justify-center">
                     <span id="loginResult">{message}</span>
                 </div>
 			</form>

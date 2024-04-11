@@ -19,7 +19,19 @@ code {
 @layer base
 {
   @font-face {
-    font-family: Hendangan;
-    src: url(../public/fonts/Hendangan.ttf);
+    font-family: 'Hendangan';
+    src: url(../public/fonts/Hendangan.ttf) format('truetype');
+  }
+  @font-face {
+    font-family: 'twoweekendgo-bold';
+    src: url(../public/fonts/twoweekendgo-bold.otf) format('opentype');
+  }
+  @font-face {
+    font-family: 'twoweekendgo-regular';
+    src: url(../public/fonts/twoweekendgo-regular.otf) format('opentype');
+  }
+  @font-face {
+    font-family: 'twoweekendgo-semibold';
+    src: url(../public/fonts/twoweekendgo-semibold.otf) format('opentype');
   }
 }
