@@ -43,7 +43,7 @@ const sendMail = (email, uniqueString) => {
 		from: sender,
 		to: email, //Recipient
 		subject: "Email Confirmation",
-		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com//verify/${uniqueString}">here</a> to verify your email. Thanks`	
+		html: `Press <a href="https://turntable-d8f41b9ae77d.herokuapp.com/verify/${uniqueString}">here</a> to verify your email. Thanks`	
 	};
 
 	Transport.sendMail(mailOptions, function (error, response) {
@@ -170,8 +170,8 @@ exports.setApp = function (app, client)
 		var error = '';
 
 		const { firstName, lastName, email, login, password } = req.body;
-		const uniqueString = randString()
-		const isValid = true
+		const uniqueString = randString();
+		const isValid = true;
 		
 		var _ret = [];
 
@@ -194,7 +194,7 @@ exports.setApp = function (app, client)
 			}else if (checkDupEmail){
 				error = "Email already in use";
 			}else{
-				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email, IsValid: isValid, UniqueString: uniqueString };
+				var newUser = { FirstName: firstName, LastName: lastName, Login: login, Password: password, Albums: albums, Ratings: ratings, Email: email, IsValid: true, UniqueString: uniqueString };
 				_ret = await db.collection('Users').insertOne(newUser);
 			}
 		}

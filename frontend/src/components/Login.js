@@ -95,10 +95,10 @@ function Login()
                     <label className="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Password</label>
                     <input className="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="password" id="loginPassword" placeholder="Your password..." ref={ (c) => loginPassword = c} /><br />
                 </div>
-				{/* Forgot password subtext */}
+				{/* Forgot password subtext
                 <div className="tw-mb-2">
                     <label className="tw-text-white tw-text-xs tw-underline tw-cursor-pointer tw-font-TWGr" onClick={RedirectToForgotPassword}>Forgot password?</label>
-                </div>
+                </div> */}
 				{/* Login Button */}
                 <div className="tw-mb-2 tw-flex tw-justify-center">
                     <input className="tw-w-28 tw-h-10 tw-bg-white hover:tw-bg-gray-50 tw-rounded-3xl tw-underline tw-cursor-pointer tw-text-sm tw-font-TWGsb" type="submit" id="loginButton" value = "Login" onClick={doLogin} />

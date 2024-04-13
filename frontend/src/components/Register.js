@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { RedirectToLogin } from './Redirect.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import PasswordComplexity from './PasswordComplexity.js';
-// import { verifyPassword } from './PasswordComplexity.js';
+import { PasswordComplexityBoolean } from './PasswordComplexityBoolean.js';
 
 function Register()
 {
@@ -20,6 +20,9 @@ function Register()
 	
 	const doRegister = async event =>
 	{
+    
+		// var bool = PasswordComplexityBoolean(loginPassword);
+
         if(firstName.value !== "" && lastName.value !== "" && email.value !== "" && loginName.value !== "" && loginPassword !== "")
         {
             event.preventDefault();
@@ -79,9 +82,9 @@ function Register()
                     <label className="tw-block tw-w-max tw-text-white tw-text-sm tw-font-TWGsb">Password</label>
                     <input className="tw-w-72 tw-h-10 tw-rounded-3xl tw-pt-1 tw-px-3 tw-bg-gray-200 tw-border tw-border-black tw-appearance-none tw-placeholder-gray-300 tw-font-TWGsb tw-text-sm tw-text-black" type="password" id="loginPassword" placeholder="Your password..." ref={ (c) => loginPassword = c} onChange={e => setPassword(e.target.value)} /><br />
                 </div>
-				<div class="tw-mb-3">
+				{/* <div class="tw-mb-3">
 					<PasswordComplexity password={password}/>
-				</div>
+				</div> */}
                 {/* Register Button */}
                 <div className="tw-mb-3 tw-flex tw-justify-center">
                     <input className=" tw-w-32 tw-h-10 tw-bg-white hover:tw-bg-gray-50 tw-rounded-3xl tw-underline tw-cursor-pointer tw-text-sm tw-font-TWGsb" type="submit" id="loginButton" value="Register" onClick={doRegister} />
